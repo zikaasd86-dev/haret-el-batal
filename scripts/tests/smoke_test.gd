@@ -66,6 +66,13 @@ func _physics_process(_delta: float) -> bool:
 				quit(1)
 				return true
 
-	print("SMOKE TEST PASSED! Player stands solidly on ground, 5 weapons ok, safe start zone ok.")
+	# التحقق من إمكانية تحميل المرحلة 2 أيضاً
+	var level2_scene := load("res://scenes/levels/Level2.tscn") as PackedScene
+	if not level2_scene:
+		printerr("TEST FAILED: Could not load Level2.tscn")
+		quit(1)
+		return true
+
+	print("SMOKE TEST PASSED! Level1 & Level2 loaded, player stands solidly, 5 weapons & safe start ok.")
 	quit(0)
 	return true

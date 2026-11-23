@@ -17,10 +17,10 @@ const BULLET_SCENE := preload("res://scenes/player/Bullet.tscn")
 const EXPLOSION_SCENE := preload("res://scenes/effects/Explosion.tscn")
 
 @export_group("Movement")
-@export var move_speed: float = 96.0
-@export var gravity: float = 540.0
-@export var jump_velocity: float = -225.0
-@export var double_jump_velocity: float = -205.0
+@export var move_speed: float = 76.0
+@export var gravity: float = 510.0
+@export var jump_velocity: float = -218.0
+@export var double_jump_velocity: float = -196.0
 @export var coyote_time: float = 0.09
 @export var jump_buffer_time: float = 0.10
 
@@ -63,6 +63,7 @@ var _tex_prone: Texture2D
 func _ready() -> void:
 	add_to_group("player")
 	hp = max_hp
+	current_weapon = clampi(GameState.saved_weapon, 0, 4) as WeaponType
 	_build_sprites()
 	sprite.texture = _tex_idle
 	prone_shape.disabled = true
@@ -135,6 +136,7 @@ func cycle_weapon() -> void:
 
 func set_weapon(weapon_idx: int) -> void:
 	current_weapon = clampi(weapon_idx, 0, 4) as WeaponType
+	GameState.saved_weapon = int(current_weapon)
 	_apply_weapon_visuals()
 	_play_sfx("jump")
 
@@ -383,7 +385,7 @@ func take_damage(amount: int = 1) -> void:
 		velocity.y = -110.0
 
 
-## أنيميشن موت واضح ومؤكد للبطل قبل إظهار شاشة GAME OVER
+## أنيميشن موت واضح ومؤكد للبطل: إذا تبقّت محاولات (Lives) يعود للعب، وإلا تظهر GAME OVER
 func _die() -> void:
 	is_dead = true
 	gun_barrel.visible = false
@@ -403,8 +405,24 @@ func _die() -> void:
 	GameState.vibrate(220)
 	_play_sfx("explode")
 
+	var has_more_lives := GameState.lose_life()
 	await get_tree().create_timer(0.95).timeout
-	if is_instance_valid(self):
+	if not is_instance_valid(self):
+		return
+
+	if has_more_lives:
+		# عودة البطل بمحاولة جديدة في مكان آمن مع فترة حماية
+		is_dead = false
+		hp = max_hp
+		GameState.player_hp_changed.emit(hp, max_hp)
+		gun_barrel.visible = true
+		sprite.rotation = 0.0
+		_apply_weapon_visuals()
+		if global_position.y > 170.0:
+			global_position = Vector2(maxf(40.0, global_position.x - 48.0), 120.0)
+		velocity = Vector2.ZERO
+		_invincible_timer = 2.0
+	else:
 		GameState.trigger_game_over()
 
 

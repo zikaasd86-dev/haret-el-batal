@@ -1,7 +1,9 @@
 extends Control
-## شاشة البداية وإعدادات الموبايل - "حارة البطل" (Haret El Batal)
+## شاشة البداية وإعدادات الموبايل - "حارة البطل" (مع حفظ المرحلة المفتوحة وأعلى نقاط)
 
 @onready var play_btn: Button = $CenterBox/VBox/PlayButton
+@onready var stage2_btn: Button = $CenterBox/VBox/Stage2Button
+@onready var hi_label: Label = $CenterBox/VBox/Subtitle
 @onready var music_btn: Button = $CenterBox/VBox/SettingsGrid/MusicButton
 @onready var sfx_btn: Button = $CenterBox/VBox/SettingsGrid/SfxButton
 @onready var vib_btn: Button = $CenterBox/VBox/SettingsGrid/VibButton
@@ -11,11 +13,15 @@ extends Control
 
 func _ready() -> void:
 	play_btn.pressed.connect(_on_play_pressed)
+	stage2_btn.pressed.connect(_on_stage2_pressed)
 	music_btn.pressed.connect(_on_music_pressed)
 	sfx_btn.pressed.connect(_on_sfx_pressed)
 	vib_btn.pressed.connect(_on_vib_pressed)
 	auto_btn.pressed.connect(_on_auto_pressed)
 	exit_btn.pressed.connect(_on_exit_pressed)
+
+	stage2_btn.visible = (GameState.unlocked_stage >= 2)
+	hi_label.text = "BEST SCORE: %05d  |  UNLOCKED: STAGE %d" % [GameState.high_score, GameState.unlocked_stage]
 	_refresh_buttons()
 	queue_redraw()
 
@@ -25,25 +31,21 @@ func _notification(what: int) -> void:
 		get_tree().quit()
 
 
-func _on_exit_pressed() -> void:
-	get_tree().quit()
-
-
 func _draw() -> void:
-	# خلفية غسق الحارة المصرية تملأ عرض الشاشة بالكامل مهما كانت نسبة الموبايل
 	var w := maxf(320.0, size.x)
 	var h := maxf(180.0, size.y)
-	draw_rect(Rect2(0, 0, w, h * 0.36), Palette.C_TEAL)
-	draw_rect(Rect2(0, h * 0.34, w, h * 0.33), Palette.C_SAND.lerp(Palette.C_TEAL, 0.45))
-	draw_rect(Rect2(0, h * 0.65, w, h * 0.35), Palette.C_DARK_BROWN)
+	draw_rect(Rect2(0, 0, w, h * 0.28), Palette.SKY_DUSK_TOP)
+	draw_rect(Rect2(0, h * 0.26, w, h * 0.30), Palette.SKY_DUSK_MID)
+	draw_rect(Rect2(0, h * 0.54, w, h * 0.26), Palette.SKY_DUSK_LOW)
+	draw_rect(Rect2(0, h * 0.78, w, h * 0.22), Palette.C_DARK_BROWN)
 
 	var bx := 6.0
 	var i := 0
 	while bx < w:
 		var bh := 105.0 + float((i * 23) % 45)
 		var by := h - 18.0 - bh
-		draw_rect(Rect2(bx, by, 48, bh), Palette.C_BRICK.darkened(0.32) if i % 2 == 0 else Palette.C_SAND.darkened(0.32))
-		draw_rect(Rect2(bx, by, 48, 5), Palette.C_DARK_BROWN)
+		draw_rect(Rect2(bx, by, 48, bh), Palette.C_BRICK.darkened(0.45) if i % 2 == 0 else Palette.C_SAND.darkened(0.45))
+		draw_rect(Rect2(bx, by, 48, 5), Palette.C_BLACK)
 		var wy := by + 12.0
 		while wy < h - 32.0:
 			draw_rect(Rect2(bx + 8, wy, 8, 10), Palette.C_GOLD if (int(wy) + i) % 3 != 0 else Palette.C_BLACK)
@@ -57,7 +59,14 @@ func _draw() -> void:
 
 
 func _on_play_pressed() -> void:
+	GameState.start_new_campaign()
 	get_tree().change_scene_to_file("res://scenes/levels/Level1.tscn")
+
+
+func _on_stage2_pressed() -> void:
+	GameState.start_new_campaign()
+	GameState.prepare_stage(2)
+	get_tree().change_scene_to_file("res://scenes/levels/Level2.tscn")
 
 
 func _on_music_pressed() -> void:
@@ -78,6 +87,10 @@ func _on_vib_pressed() -> void:
 func _on_auto_pressed() -> void:
 	GameState.toggle_auto_fire()
 	_refresh_buttons()
+
+
+func _on_exit_pressed() -> void:
+	get_tree().quit()
 
 
 func _refresh_buttons() -> void:

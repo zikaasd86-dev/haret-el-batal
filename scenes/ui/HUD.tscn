@@ -152,6 +152,12 @@ theme_override_font_sizes/font_size = 9
 text = "STAGE 1 CLEARED!"
 horizontal_alignment = 1
 
+[node name="NextStageButton" type="Button" parent="EndPanel/VBox"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+text = "NEXT STAGE (NIGHT) ->"
+
 [node name="RestartButton" type="Button" parent="EndPanel/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 7

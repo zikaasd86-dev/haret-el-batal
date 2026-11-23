@@ -1,16 +1,17 @@
 extends Node2D
-## المرحلة الأولى: "حارة البطل" (Level 1)
-## حارة شعبية مصرية (أزقة، أسطح، أكشاك، صناديق خشبية) باستخدام TileMapLayer
-## كاميرا جانبية تتبع البطل أفقياً وتثبت عند ساحة الزعيم
+## مرحلة "حارة البطل" — تدعم المرحلة 1 (غسق الحارة 2400px) والمرحلة 2 (أسطح الحارة ليلاً 2400px)
+## خلفية 16-bit متعددة الطبقات بألوان ساطعة وتباين قوي + تصادمات صلبة + زعيم طويل 3 مراحل
 
 const ENEMY_SCENE := preload("res://scenes/enemies/Enemy.tscn")
 const CRATE_SCENE := preload("res://scenes/levels/PickupCrate.tscn")
 
 const TILE_SIZE := 16
-const LEVEL_TILES_W := 80 # 1280 بكسل عرض المرحلة
-const GROUND_ROW := 10    # الصف 10 = y=160
-const BOSS_TRIGGER_X := 980.0
-const BOSS_CAM_X := 1120.0
+const LEVEL_TILES_W := 150 # 2400 بكسل طول المرحلة (ضعف الطول السابق!)
+const GROUND_ROW := 10     # y = 160
+const BOSS_TRIGGER_X := 2080.0
+
+@export var stage_number: int = 1
+@export var night_theme: bool = false
 
 var _boss_locked: bool = false
 var _shake_timer: float = 0.0
@@ -25,7 +26,7 @@ var _shake_intensity: float = 0.0
 
 
 func _ready() -> void:
-	GameState.reset_run()
+	GameState.prepare_stage(stage_number)
 	GameState.screen_shake_requested.connect(_on_screen_shake)
 	_setup_tilesets()
 	_build_alley_layout()
@@ -41,7 +42,7 @@ func _setup_camera() -> void:
 	camera.limit_top = 0
 	camera.limit_right = LEVEL_TILES_W * TILE_SIZE
 	camera.limit_bottom = 180
-	camera.global_position = Vector2(160, 90)
+	camera.global_position = Vector2(180, 90)
 
 
 func _physics_process(delta: float) -> void:
@@ -49,10 +50,8 @@ func _physics_process(delta: float) -> void:
 		return
 
 	var half_w := get_viewport().get_visible_rect().size.x * 0.5
-	var max_cam_x := float(LEVEL_TILES_W * TILE_SIZE) - half_w
-	var boss_cam_x := max_cam_x
+	var boss_cam_x := float(LEVEL_TILES_W * TILE_SIZE) - half_w
 
-	# تثبيت الكاميرا عند دخول ساحة الزعيم
 	if not _boss_locked and player.global_position.x >= BOSS_TRIGGER_X:
 		_boss_locked = true
 		if is_instance_valid(boss) and boss.has_method("activate"):
@@ -61,7 +60,6 @@ func _physics_process(delta: float) -> void:
 	var target_x: float
 	if _boss_locked:
 		target_x = boss_cam_x
-		# منع البطل من الخروج يسار ساحة الزعيم
 		player.global_position.x = maxf(player.global_position.x, boss_cam_x - half_w + 8.0)
 	else:
 		target_x = clampf(player.global_position.x + 28.0, half_w, boss_cam_x)
@@ -69,7 +67,6 @@ func _physics_process(delta: float) -> void:
 	camera.global_position.x = lerpf(camera.global_position.x, target_x, minf(1.0, delta * 8.0))
 	camera.global_position.y = 90.0
 
-	# اهتزاز الكاميرا عند الانفجارات
 	if _shake_timer > 0.0:
 		_shake_timer -= delta
 		camera.offset = Vector2(
@@ -85,54 +82,87 @@ func _on_screen_shake(intensity: float, duration: float) -> void:
 	_shake_timer = maxf(_shake_timer, duration)
 
 
-## رسم خلفية الحارة المصرية (سماء غسق دافئة، مباني، نوافذ مضيئة، فوانيس معلقة)
+## رسم خلفية 16-bit غنية بالألوان والتباين (سماء متدرجة + أفق قاهري + عمارات مرتفعة + فوانيس)
 func _draw() -> void:
 	var level_w := float(LEVEL_TILES_W * TILE_SIZE)
-	# سماء الغسق الدافئة
-	draw_rect(Rect2(0, 0, level_w, 180), Palette.C_TEAL)
-	draw_rect(Rect2(0, 56, level_w, 60), Palette.C_SAND.lerp(Palette.C_TEAL, 0.45))
-	draw_rect(Rect2(0, 108, level_w, 72), Palette.C_DARK_BROWN)
 
-	# مباني الحارة الخلفية المرتفعة (عمارات متعددة الطوابق بألوان دافئة وشرفات وفوانيس)
+	if night_theme:
+		# سماء ليلية ساحرة للمرحلة 2
+		draw_rect(Rect2(0, 0, level_w, 58), Palette.SKY_NIGHT_TOP)
+		draw_rect(Rect2(0, 56, level_w, 56), Palette.SKY_NIGHT_MID)
+		draw_rect(Rect2(0, 110, level_w, 70), Palette.SKY_NIGHT_LOW)
+		# نجوم وقمر مضيء على امتداد الأفق
+		for s in range(0, int(level_w), 48):
+			draw_rect(Rect2(float(s + (s * 7) % 30), float(8 + (s * 13) % 44), 2, 2), Palette.C_CREAM)
+		for mx in [240.0, 960.0, 1680.0]:
+			draw_circle(Vector2(mx, 30.0), 14.0, Palette.C_CREAM)
+			draw_circle(Vector2(mx + 4.0, 27.0), 12.0, Palette.SKY_NIGHT_TOP)
+	else:
+		# تدرج سماء غسق دافئ 16-bit للمرحلة 1
+		draw_rect(Rect2(0, 0, level_w, 46), Palette.SKY_DUSK_TOP)
+		draw_rect(Rect2(0, 44, level_w, 48), Palette.SKY_DUSK_MID)
+		draw_rect(Rect2(0, 90, level_w, 44), Palette.SKY_DUSK_LOW)
+		draw_rect(Rect2(0, 132, level_w, 48), Palette.C_DARK_BROWN)
+
+	# طبقة الأفق البعيد (قباب ومآذن قاهرية داكنة لإعطاء عمق)
+	var sx := 24.0
+	var s_idx := 0
+	while sx < level_w:
+		var sil_col := Palette.SKY_NIGHT_TOP.lightened(0.08) if night_theme else Palette.SKY_DUSK_MID.darkened(0.42)
+		if s_idx % 2 == 0:
+			# مئذنة رشيقة في الأفق
+			draw_rect(Rect2(sx, 26, 8, 134), sil_col)
+			draw_rect(Rect2(sx - 2, 54, 12, 4), sil_col)
+			draw_circle(Vector2(sx + 4, 24), 4.0, sil_col)
+		else:
+			# قبة بعيدة
+			draw_circle(Vector2(sx + 16, 86), 16.0, sil_col)
+			draw_rect(Rect2(sx, 86, 32, 74), sil_col)
+		sx += 130.0
+		s_idx += 1
+
+	# عمارات الحارة المرتفعة (بألوان أغمق قليلاً لتبرز الشخصيات والطلقات بوضوح عالٍ!)
 	var b_x := 4.0
 	var idx := 0
 	while b_x < level_w - 30.0:
 		var bw := 50.0 + float((idx * 19) % 26)
-		var bh := 118.0 + float((idx * 29) % 38) # ارتفاع 118 إلى 156 بكسل
+		var bh := 118.0 + float((idx * 29) % 38)
 		var by := 160.0 - bh
-		var wall_col := Palette.C_SAND if (idx % 3 == 0) else (Palette.C_BRICK if (idx % 3 == 1) else Palette.C_WOOD)
-		draw_rect(Rect2(b_x, by, bw, bh), wall_col.darkened(0.28))
-		# سور السطح العلوي
-		draw_rect(Rect2(b_x - 1, by, bw + 2, 5), Palette.C_DARK_BROWN)
-		draw_rect(Rect2(b_x, by + 5, bw, 2), Palette.C_CREAM.darkened(0.35))
+		var wall_col: Color
+		if night_theme:
+			wall_col = Palette.SKY_NIGHT_MID.darkened(0.22) if idx % 2 == 0 else Palette.C_SLATE.darkened(0.55)
+		else:
+			var base_c := Palette.C_SAND if (idx % 3 == 0) else (Palette.C_BRICK if (idx % 3 == 1) else Palette.C_WOOD)
+			wall_col = base_c.darkened(0.45)
 
-		# نوافذ وشرفات متعددة الطوابق
+		draw_rect(Rect2(b_x, by, bw, bh), wall_col)
+		draw_rect(Rect2(b_x - 1, by, bw + 2, 5), Palette.C_BLACK)
+		draw_rect(Rect2(b_x, by + 5, bw, 2), Palette.C_SAND.darkened(0.3))
+
 		var wy := by + 13.0
 		while wy < 142.0:
 			var wx := b_x + 7.0
 			while wx < b_x + bw - 12.0:
-				var lit := ((idx + int(wx + wy)) % 2 == 0)
-				draw_rect(Rect2(wx, wy, 8, 12), Palette.C_DARK_GREEN)
-				draw_rect(Rect2(wx + 1, wy + 1, 6, 9), Palette.C_GOLD if lit else Palette.C_BLACK)
+				var lit := ((idx + int(wx + wy)) % 3 != 0)
+				draw_rect(Rect2(wx, wy, 8, 12), Palette.C_DARK_GREEN.darkened(0.2))
+				draw_rect(Rect2(wx + 1, wy + 1, 6, 9), Palette.C_GOLD.darkened(0.1) if lit else Palette.C_BLACK)
 				wx += 15.0
 			wy += 22.0
 
-		# حبل زينة وفانوس معلق بين العمارات
 		if idx % 2 == 0:
 			var lx := b_x + bw + 3.0
-			draw_line(Vector2(b_x + bw, by + 20), Vector2(b_x + bw + 14, by + 26), Palette.C_DARK_BROWN, 1.0)
+			draw_line(Vector2(b_x + bw, by + 20), Vector2(b_x + bw + 14, by + 26), Palette.C_BLACK, 1.0)
 			draw_rect(Rect2(lx, by + 24, 5, 7), Palette.C_GOLD)
-			draw_rect(Rect2(lx + 1, by + 25, 3, 5), Palette.C_CREAM)
+			draw_rect(Rect2(lx + 1, by + 25, 3, 5), Palette.C_WHITE)
 
 		b_x += bw + 8.0
 		idx += 1
 
 
-## إنشاء TileSet برمجي من 4 بلاطات بكسل آرت أصلية (16×16 لكل بلاطة)
 func _setup_tilesets() -> void:
 	var atlas_img := Image.create(64, 16, false, Image.FORMAT_RGBA8)
 
-	# 0: أرضية الحارة (حجر رملي مرصوف)
+	# 0: أرضية الحارة
 	_blit_tile(atlas_img, 0, PackedStringArray([
 		"5555555555555555",
 		"4444441444444414",
@@ -152,7 +182,7 @@ func _setup_tilesets() -> void:
 		"0000000000000000",
 	]))
 
-	# 1: جدار طوبي/منصة صلبة
+	# 1: جدار طوبي
 	_blit_tile(atlas_img, 16, PackedStringArray([
 		"1111111111111111",
 		"3333333133333331",
@@ -172,7 +202,7 @@ func _setup_tilesets() -> void:
 		"1111111111111111",
 	]))
 
-	# 2: صندوق خشبي (منصة قابلة للقفز من أسفل)
+	# 2: صندوق خشبي
 	_blit_tile(atlas_img, 32, PackedStringArray([
 		"0000000000000000",
 		"0622222222222260",
@@ -192,7 +222,7 @@ func _setup_tilesets() -> void:
 		"0000000000000000",
 	]))
 
-	# 3: مظلة كشك / سطح أخضر داكن (منصة أحادية الاتجاه)
+	# 3: مظلة كشك / سطح أخضر
 	_blit_tile(atlas_img, 48, PackedStringArray([
 		"0000000000000000",
 		"0888558888558880",
@@ -213,47 +243,19 @@ func _setup_tilesets() -> void:
 	]))
 
 	var atlas_tex := ImageTexture.create_from_image(atlas_img)
-
-	# TileSet للأرضية والجدران الصلبة (Layer 1: World)
-	solid_tiles.tile_set = _create_tileset(atlas_tex, 1, false)
-	# TileSet للأكشاك والصناديق (Layer 6: OneWayPlatform)
-	platform_tiles.tile_set = _create_tileset(atlas_tex, 32, true)
+	solid_tiles.tile_set = _create_visual_tileset(atlas_tex)
+	platform_tiles.tile_set = _create_visual_tileset(atlas_tex)
 
 
-func _create_tileset(atlas_tex: Texture2D, col_layer: int, one_way: bool) -> TileSet:
+func _create_visual_tileset(atlas_tex: Texture2D) -> TileSet:
 	var ts := TileSet.new()
 	ts.tile_size = Vector2i(TILE_SIZE, TILE_SIZE)
-	ts.add_physics_layer()
-	ts.set_physics_layer_collision_layer(0, col_layer)
-	ts.set_physics_layer_collision_mask(0, 0)
-
 	var source := TileSetAtlasSource.new()
 	source.texture = atlas_tex
 	source.texture_region_size = Vector2i(TILE_SIZE, TILE_SIZE)
-	# مهم جداً في Godot 4: يجب إضافة الـ Source للـ TileSet قبل إنشاء البلاطات ومضلعات التصادم
 	ts.add_source(source, 0)
-
 	for i in range(4):
-		var coords := Vector2i(i, 0)
-		source.create_tile(coords)
-		var data := source.get_tile_data(coords, 0)
-		if one_way:
-			# تصادم في الثلث العلوي فقط كمنصة أحادية الاتجاه
-			var poly := PackedVector2Array([
-				Vector2(-8, -8), Vector2(8, -8),
-				Vector2(8, -2), Vector2(-8, -2)
-			])
-			data.add_collision_polygon(0)
-			data.set_collision_polygon_points(0, 0, poly)
-			data.set_collision_polygon_one_way(0, 0, true)
-		else:
-			var poly := PackedVector2Array([
-				Vector2(-8, -8), Vector2(8, -8),
-				Vector2(8, 8), Vector2(-8, 8)
-			])
-			data.add_collision_polygon(0)
-			data.set_collision_polygon_points(0, 0, poly)
-
+		source.create_tile(Vector2i(i, 0))
 	return ts
 
 
@@ -262,57 +264,56 @@ func _blit_tile(dst: Image, offset_x: int, rows: PackedStringArray) -> void:
 	for y in range(16):
 		var row := rows[y]
 		for x in range(16):
-			var col: Color = cmap.get(row[x], Color(0, 0, 0, 0))
-			dst.set_pixel(offset_x + x, y, col)
+			dst.set_pixel(offset_x + x, y, cmap.get(row[x], Color(0, 0, 0, 0)))
 
 
-## بناء تخطيط المرحلة الأولى (حارة مصرية + صناديق + أكشاك + أسطح + ساحة الزعيم)
 func _build_alley_layout() -> void:
-	# 1. أرضية الشارع مع فجوة صغيرة للقفز في المنتصف
+	# 1. أرضية الشارع الطويلة (150 بلاطة = 2400px) مع 4 فجوات قفز موزعة
 	for x in range(LEVEL_TILES_W):
-		if x in [28, 29, 49, 50]:
-			continue # فجوات بسيطة (مجاري/حفر في الزقاق)
+		if x in [32, 33, 62, 63, 94, 95, 118, 119]:
+			continue
 		solid_tiles.set_cell(Vector2i(x, GROUND_ROW), 0, Vector2i(0, 0))
 		solid_tiles.set_cell(Vector2i(x, GROUND_ROW + 1), 0, Vector2i(1, 0))
 
-	# 2. جدار حدود يسار المرحلة
 	for y in range(0, GROUND_ROW):
 		solid_tiles.set_cell(Vector2i(-1, y), 0, Vector2i(1, 0))
 
-	# 3. صناديق خشبية وأكشاك على طول الحارة (منصات أحادية الاتجاه)
-	# بداية الحارة: صناديق وكشك شاي
-	platform_tiles.set_cell(Vector2i(8, 9), 0, Vector2i(2, 0))
-	platform_tiles.set_cell(Vector2i(9, 9), 0, Vector2i(2, 0))
-	for x in range(12, 16):
-		platform_tiles.set_cell(Vector2i(x, 7), 0, Vector2i(3, 0))
-
-	# أسطح منازل منخفضة
-	for x in range(20, 26):
-		platform_tiles.set_cell(Vector2i(x, 6), 0, Vector2i(3, 0))
-	platform_tiles.set_cell(Vector2i(24, 9), 0, Vector2i(2, 0))
-
-	# بعد الفجوة الأولى: درج صناديق + سطح كشك
-	platform_tiles.set_cell(Vector2i(32, 9), 0, Vector2i(2, 0))
-	platform_tiles.set_cell(Vector2i(33, 8), 0, Vector2i(2, 0))
-	for x in range(36, 43):
-		platform_tiles.set_cell(Vector2i(x, 6), 0, Vector2i(3, 0))
-
-	# قبل الفجوة الثانية وبعدها
-	for x in range(46, 54):
-		platform_tiles.set_cell(Vector2i(x, 7), 0, Vector2i(3, 0))
-	platform_tiles.set_cell(Vector2i(56, 9), 0, Vector2i(2, 0))
-	platform_tiles.set_cell(Vector2i(57, 9), 0, Vector2i(2, 0))
-
-	# ساحة الزعيم (منصتان للتصويب على النواة الحمراء وتفادي الطلقات)
-	for x in range(65, 69):
-		platform_tiles.set_cell(Vector2i(x, 7), 0, Vector2i(2, 0))
-	for x in range(70, 73):
-		platform_tiles.set_cell(Vector2i(x, 5), 0, Vector2i(3, 0))
+	# 2. المنصات والأكشاك والأسطح على امتداد الـ 2400 بكسل
+	for span in _get_platform_spans():
+		var tile_id: int = span[3]
+		for x in range(span[0], span[1]):
+			platform_tiles.set_cell(Vector2i(x, span[2]), 0, Vector2i(tile_id, 0))
 
 
-## إنشاء تصادمات فيزيائية صلبة (StaticBody2D) للأرضية والمنصات لضمان عدم السقوط أبداً
+func _get_platform_spans() -> Array:
+	# [x_start, x_end, row_y, tile_id (2=صندوق, 3=كشك/سطح)]
+	return [
+		# منطقة البداية الآمنة (0..22)
+		[8, 10, 9, 2],
+		[12, 16, 7, 3],
+		# المنطقة الوسطى 1
+		[22, 28, 6, 3],
+		[29, 36, 7, 3],
+		[40, 46, 6, 3],
+		[48, 50, 9, 2],
+		[52, 58, 7, 3],
+		# المنطقة الوسطى 2
+		[60, 67, 6, 3],
+		[71, 73, 9, 2],
+		[75, 82, 7, 3],
+		[84, 90, 5, 3],
+		[92, 99, 7, 3],
+		# المنطقة الأخيرة قبل الزعيم
+		[104, 110, 6, 3],
+		[112, 114, 9, 2],
+		[116, 124, 7, 3],
+		# ساحة الزعيم
+		[132, 136, 7, 2],
+		[138, 142, 5, 3],
+	]
+
+
 func _build_physics_colliders() -> void:
-	# 1. الأرضية الصلبة (Layer 1: World) مقسّمة حول الفجوتين [28..29] و [49..50]
 	var ground_body := StaticBody2D.new()
 	ground_body.name = "GroundColliders"
 	ground_body.collision_layer = 1
@@ -320,9 +321,11 @@ func _build_physics_colliders() -> void:
 	add_child(ground_body)
 
 	var ground_segments := [
-		[0, 28],    # من البداية حتى الفجوة الأولى
-		[30, 49],   # بين الفجوتين
-		[51, 80],   # حتى نهاية ساحة الزعيم
+		[0, 32],
+		[34, 62],
+		[64, 94],
+		[96, 118],
+		[120, 150],
 	]
 	for seg in ground_segments:
 		var x1 := float(seg[0] * TILE_SIZE)
@@ -334,7 +337,6 @@ func _build_physics_colliders() -> void:
 		cs.position = Vector2((x1 + x2) * 0.5, float(GROUND_ROW * TILE_SIZE) + 16.0)
 		ground_body.add_child(cs)
 
-	# جدار يسار المرحلة
 	var wall_cs := CollisionShape2D.new()
 	var wall_rect := RectangleShape2D.new()
 	wall_rect.size = Vector2(16.0, 200.0)
@@ -342,27 +344,13 @@ func _build_physics_colliders() -> void:
 	wall_cs.position = Vector2(-8.0, 80.0)
 	ground_body.add_child(wall_cs)
 
-	# 2. المنصات أحادية الاتجاه (Layer 6: OneWayPlatform = 32)
 	var plat_body := StaticBody2D.new()
 	plat_body.name = "PlatformColliders"
 	plat_body.collision_layer = 32
 	plat_body.collision_mask = 0
 	add_child(plat_body)
 
-	var one_way_spans := [
-		[8, 10, 9],   # صناديق بداية الحارة
-		[12, 16, 7],  # كشك الشاي
-		[20, 26, 6],  # أسطح منازل
-		[24, 25, 9],  # صندوق
-		[32, 33, 9],  # درج صناديق 1
-		[33, 34, 8],  # درج صناديق 2
-		[36, 43, 6],  # سطح كشك
-		[46, 54, 7],  # جسر فوق الفجوة الثانية
-		[56, 58, 9],  # صناديق
-		[65, 69, 7],  # منصة ساحة الزعيم 1
-		[70, 73, 5],  # منصة ساحة الزعيم 2
-	]
-	for span in one_way_spans:
+	for span in _get_platform_spans():
 		var x1 := float(span[0] * TILE_SIZE)
 		var x2 := float(span[1] * TILE_SIZE)
 		var y_top := float(span[2] * TILE_SIZE)
@@ -375,35 +363,43 @@ func _build_physics_colliders() -> void:
 		plat_body.add_child(cs)
 
 
-## توزيع الأعداء الثلاثة (بعد منطقة بداية آمنة 0..350 ليتدرّب البطل على الحركة والقفز)
 func _spawn_enemies() -> void:
 	var spawns := [
-		# [نوع العدو (0=يمشي, 1=يطلق نار, 2=يقفز), X بالبكسل, Y بالبكسل]
-		[0, 390.0, 94.0],
-		[2, 425.0, 158.0],
-		[1, 535.0, 126.0],
-		[0, 625.0, 94.0],
-		[2, 690.0, 158.0],
-		[1, 795.0, 110.0],
-		[0, 880.0, 158.0],
-		[2, 935.0, 158.0],
+		[0, 410.0, 94.0],
+		[2, 460.0, 158.0],
+		[1, 560.0, 110.0],
+		[0, 690.0, 94.0],
+		[2, 760.0, 158.0],
+		[1, 880.0, 110.0],
+		[0, 1020.0, 94.0],
+		[2, 1100.0, 158.0],
+		[1, 1250.0, 110.0],
+		[0, 1390.0, 78.0],
+		[2, 1460.0, 158.0],
+		[1, 1550.0, 110.0],
+		[0, 1710.0, 94.0],
+		[2, 1790.0, 158.0],
+		[1, 1920.0, 110.0],
+		[0, 2000.0, 158.0],
 	]
 
 	for entry in spawns:
 		var enemy := ENEMY_SCENE.instantiate()
 		enemy.enemy_type = entry[0]
+		if stage_number >= 2:
+			enemy.max_hp = 3
 		enemy.position = Vector2(entry[1], entry[2])
 		enemies_root.add_child(enemy)
 
 
-## توزيع صناديق الإمداد (أسلحة متنوعة + صحة)
 func _spawn_supply_crates() -> void:
 	var crates := [
-		[0, 210.0, 160.0], # صندوق السلاح المتفرق في منطقة البداية الآمنة
-		[3, 490.0, 160.0], # صندوق الليزر المتموج
-		[2, 650.0, 96.0],  # صندوق صحة على السطح
-		[4, 830.0, 112.0], # صندوق قاذف الشرار الناري
-		[1, 955.0, 160.0], # صندوق الشعاع الثقيل قبل ساحة الزعيم
+		[0, 210.0, 160.0],  # السلاح المتفرق (Spread)
+		[3, 620.0, 160.0],  # الليزر المتموج (Wave)
+		[2, 920.0, 112.0],  # قلب صحة
+		[4, 1310.0, 112.0], # قاذف الشرار الناري (Flame)
+		[2, 1680.0, 96.0],  # قلب صحة
+		[1, 2030.0, 160.0], # الشعاع الثقيل (Heavy) قبل الزعيم
 	]
 	for entry in crates:
 		var crate := CRATE_SCENE.instantiate()

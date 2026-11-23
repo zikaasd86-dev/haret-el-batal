@@ -22,7 +22,7 @@ const EXPLOSION_SCENE := preload("res://scenes/effects/Explosion.tscn")
 @export var fire_interval: float = 1.45
 @export var jump_velocity: float = -185.0
 @export var jump_interval: float = 1.35
-@export var bullet_speed: float = 130.0
+@export var bullet_speed: float = 115.0
 @export var score_value: int = 100
 
 var hp: int = 2

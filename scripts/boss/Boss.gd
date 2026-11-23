@@ -5,11 +5,11 @@ extends StaticBody2D
 const BULLET_SCENE := preload("res://scenes/player/Bullet.tscn")
 const EXPLOSION_SCENE := preload("res://scenes/effects/Explosion.tscn")
 
-@export var max_hp: int = 60
-@export var activation_distance: float = 220.0
-@export var score_value: int = 1000
+@export var max_hp: int = 180
+@export var activation_distance: float = 240.0
+@export var score_value: int = 1500
 
-var hp: int = 60
+var hp: int = 180
 var current_phase: int = 1
 var is_active: bool = false
 var is_defeated: bool = false
