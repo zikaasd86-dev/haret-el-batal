@@ -125,10 +125,17 @@ func _on_boss_activated(active: bool) -> void:
 	boss_box.visible = active
 
 
-func _on_boss_hp_changed(current_hp: int, max_hp: int, phase: int) -> void:
+func _on_boss_hp_changed(current_hp: int, max_hp: int, _phase: int) -> void:
 	boss_bar.max_value = max_hp
 	boss_bar.value = current_hp
-	boss_label.text = "BOSS - PHASE %d (%d/%d)" % [phase, current_hp, max_hp]
+	var pct := int(round((float(current_hp) / maxf(1.0, float(max_hp))) * 100.0))
+	boss_label.text = "%s  —  %d%%" % [GameState.current_boss_name, pct]
+	if pct <= 34:
+		boss_bar.modulate = Palette.C_RED_CORE
+	elif pct <= 67:
+		boss_bar.modulate = Palette.C_GOLD
+	else:
+		boss_bar.modulate = Palette.C_GREEN
 
 
 func _on_game_over() -> void:

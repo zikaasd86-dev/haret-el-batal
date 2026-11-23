@@ -6,9 +6,9 @@ const ENEMY_SCENE := preload("res://scenes/enemies/Enemy.tscn")
 const CRATE_SCENE := preload("res://scenes/levels/PickupCrate.tscn")
 
 const TILE_SIZE := 16
-const LEVEL_TILES_W := 150 # 2400 بكسل طول المرحلة (ضعف الطول السابق!)
+const LEVEL_TILES_W := 200 # 3200 بكسل طول المرحلة (رحلة أكشن كاملة قبل الزعيم!)
 const GROUND_ROW := 10     # y = 160
-const BOSS_TRIGGER_X := 2080.0
+const BOSS_TRIGGER_X := 2860.0
 
 @export var stage_number: int = 1
 @export var night_theme: bool = false
@@ -268,9 +268,9 @@ func _blit_tile(dst: Image, offset_x: int, rows: PackedStringArray) -> void:
 
 
 func _build_alley_layout() -> void:
-	# 1. أرضية الشارع الطويلة (150 بلاطة = 2400px) مع 4 فجوات قفز موزعة
+	# 1. أرضية الشارع الطويلة (200 بلاطة = 3200px) مع 5 فجوات قفز موزعة
 	for x in range(LEVEL_TILES_W):
-		if x in [32, 33, 62, 63, 94, 95, 118, 119]:
+		if x in [32, 33, 62, 63, 94, 95, 128, 129, 160, 161]:
 			continue
 		solid_tiles.set_cell(Vector2i(x, GROUND_ROW), 0, Vector2i(0, 0))
 		solid_tiles.set_cell(Vector2i(x, GROUND_ROW + 1), 0, Vector2i(1, 0))
@@ -278,7 +278,6 @@ func _build_alley_layout() -> void:
 	for y in range(0, GROUND_ROW):
 		solid_tiles.set_cell(Vector2i(-1, y), 0, Vector2i(1, 0))
 
-	# 2. المنصات والأكشاك والأسطح على امتداد الـ 2400 بكسل
 	for span in _get_platform_spans():
 		var tile_id: int = span[3]
 		for x in range(span[0], span[1]):
@@ -286,7 +285,6 @@ func _build_alley_layout() -> void:
 
 
 func _get_platform_spans() -> Array:
-	# [x_start, x_end, row_y, tile_id (2=صندوق, 3=كشك/سطح)]
 	return [
 		# منطقة البداية الآمنة (0..22)
 		[8, 10, 9, 2],
@@ -303,13 +301,18 @@ func _get_platform_spans() -> Array:
 		[75, 82, 7, 3],
 		[84, 90, 5, 3],
 		[92, 99, 7, 3],
-		# المنطقة الأخيرة قبل الزعيم
-		[104, 110, 6, 3],
-		[112, 114, 9, 2],
-		[116, 124, 7, 3],
-		# ساحة الزعيم
-		[132, 136, 7, 2],
-		[138, 142, 5, 3],
+		# المنطقة الثالثة الجديدة (1600..2800px)
+		[104, 111, 6, 3],
+		[114, 116, 9, 2],
+		[118, 125, 7, 3],
+		[126, 133, 6, 3],
+		[138, 145, 7, 3],
+		[148, 154, 5, 3],
+		[157, 165, 7, 3],
+		[169, 174, 6, 3],
+		# ساحة الزعيم (2860..3200px)
+		[182, 186, 7, 2],
+		[188, 192, 5, 3],
 	]
 
 
@@ -324,8 +327,9 @@ func _build_physics_colliders() -> void:
 		[0, 32],
 		[34, 62],
 		[64, 94],
-		[96, 118],
-		[120, 150],
+		[96, 128],
+		[130, 160],
+		[162, 200],
 	]
 	for seg in ground_segments:
 		var x1 := float(seg[0] * TILE_SIZE)
@@ -379,8 +383,13 @@ func _spawn_enemies() -> void:
 		[1, 1550.0, 110.0],
 		[0, 1710.0, 94.0],
 		[2, 1790.0, 158.0],
-		[1, 1920.0, 110.0],
-		[0, 2000.0, 158.0],
+		[1, 1940.0, 110.0],
+		[0, 2080.0, 94.0],
+		[2, 2240.0, 158.0],
+		[1, 2410.0, 78.0],
+		[0, 2580.0, 110.0],
+		[2, 2720.0, 158.0],
+		[1, 2760.0, 94.0],
 	]
 
 	for entry in spawns:
@@ -398,8 +407,10 @@ func _spawn_supply_crates() -> void:
 		[3, 620.0, 160.0],  # الليزر المتموج (Wave)
 		[2, 920.0, 112.0],  # قلب صحة
 		[4, 1310.0, 112.0], # قاذف الشرار الناري (Flame)
-		[2, 1680.0, 96.0],  # قلب صحة
-		[1, 2030.0, 160.0], # الشعاع الثقيل (Heavy) قبل الزعيم
+		[2, 1720.0, 96.0],  # قلب صحة
+		[3, 2280.0, 112.0], # ليزر متموج
+		[2, 2600.0, 160.0], # قلب صحة قبل الزعيم
+		[1, 2810.0, 160.0], # الشعاع الثقيل (Heavy) قبل ساحة الزعيم
 	]
 	for entry in crates:
 		var crate := CRATE_SCENE.instantiate()

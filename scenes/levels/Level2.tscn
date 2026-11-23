@@ -21,8 +21,9 @@ night_theme = true
 position = Vector2(40, 156)
 
 [node name="Boss" parent="." instance=ExtResource("3_boss")]
-position = Vector2(2368, 160)
-max_hp = 240
+position = Vector2(3152, 160)
+boss_name = "SHABAH EL SOTOOH"
+max_hp = 150
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(180, 90)

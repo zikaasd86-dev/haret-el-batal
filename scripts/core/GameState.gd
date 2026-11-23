@@ -23,6 +23,7 @@ var lives: int = 3
 var current_stage: int = 1
 var unlocked_stage: int = 1
 var saved_weapon: int = 0
+var current_boss_name: String = "ZAEEM HARET EL MAGANEEN"
 
 var auto_fire_enabled: bool = false
 var music_enabled: bool = true

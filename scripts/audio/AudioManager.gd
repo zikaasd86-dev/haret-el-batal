@@ -9,14 +9,29 @@ var _sfx_streams: Dictionary = {}
 var _sfx_players: Array[AudioStreamPlayer] = []
 var _sfx_idx: int = 0
 var _bgm_player: AudioStreamPlayer
+var _alley_bgm: AudioStreamWAV
+var _boss_bgm: AudioStreamWAV
+var _is_boss_music: bool = false
 
 
 func _ready() -> void:
 	_build_sfx_bank()
 	_setup_players()
-	_start_bgm()
+	_alley_bgm = _build_alley_bgm()
+	_boss_bgm = _build_boss_bgm()
+	_bgm_player.stream = _alley_bgm
 	GameState.music_changed.connect(_on_music_changed)
+	GameState.boss_activated.connect(_on_boss_activated)
 	_on_music_changed(GameState.music_enabled)
+
+
+func _on_boss_activated(active: bool) -> void:
+	if _is_boss_music == active:
+		return
+	_is_boss_music = active
+	_bgm_player.stream = _boss_bgm if active else _alley_bgm
+	if GameState.music_enabled:
+		_bgm_player.play()
 
 
 func _on_music_changed(enabled: bool) -> void:
@@ -103,8 +118,7 @@ func _synth_sweep(duration: float, f_start: float, f_end: float, wave: String, v
 
 
 ## توليد لحن Chiptune أصلي 100% بطابع مصري (مقام حجاز: D Eb F# G A Bb C D)
-func _start_bgm() -> void:
-	# ترددات مقام الحجاز على درجة الري (D4 .. D5)
+func _build_alley_bgm() -> AudioStreamWAV:
 	const N_REST := 0.0
 	const D4  := 293.66
 	const Eb4 := 311.13
@@ -115,7 +129,6 @@ func _start_bgm() -> void:
 	const C5  := 523.25
 	const D5  := 587.33
 
-	# لحن أصلي من 16 خطوة (إيقاع أكشن أركيد سريع)
 	var melody := [
 		D4, Fs4, G4, A4,  Bb4, A4, G4, Fs4,
 		G4, A4, Bb4, D5,  C5, Bb4, A4, N_REST,
@@ -126,8 +139,34 @@ func _start_bgm() -> void:
 		D4 * 0.5, D4 * 0.5, A4 * 0.5, D4 * 0.5,
 		G4 * 0.5, G4 * 0.5, D4 * 0.5, A4 * 0.5,
 	]
+	return _synth_track(melody, bass, 0.145, 2026)
 
-	var step_dur := 0.145 # ~103 BPM إيقاع حماسى
+
+## لحن قتال الزعيم (إيقاع أسرع وأكثر توتراً وحماساً عند دخول ساحة الزعيم)
+func _build_boss_bgm() -> AudioStreamWAV:
+	const N_REST := 0.0
+	const A4  := 440.00
+	const Bb4 := 466.16
+	const Cs5 := 554.37
+	const D5  := 587.33
+	const E5  := 659.25
+	const F5  := 698.46
+	const G5  := 783.99
+
+	var melody := [
+		A4, A4, Bb4, A4,  Cs5, D5, Cs5, Bb4,
+		A4, E5, F5, E5,   D5, Cs5, Bb4, A4,
+		D5, D5, E5, F5,   G5, F5, E5, D5,
+		Cs5, Bb4, A4, N_REST, A4, Cs5, E5, N_REST,
+	]
+	var bass := [
+		A4 * 0.25, A4 * 0.5, A4 * 0.25, Bb4 * 0.25,
+		D5 * 0.25, D5 * 0.5, Cs5 * 0.25, A4 * 0.25,
+	]
+	return _synth_track(melody, bass, 0.105, 9090)
+
+
+func _synth_track(melody: Array, bass: Array, step_dur: float, seed_val: int) -> AudioStreamWAV:
 	var step_samples := int(MIX_RATE * step_dur)
 	var total_samples := melody.size() * step_samples
 	var data := PackedByteArray()
@@ -136,7 +175,7 @@ func _start_bgm() -> void:
 	var lead_phase := 0.0
 	var bass_phase := 0.0
 	var rng := RandomNumberGenerator.new()
-	rng.seed = 2026
+	rng.seed = seed_val
 
 	for s_idx in range(melody.size()):
 		var lead_freq: float = melody[s_idx]
@@ -147,18 +186,15 @@ func _start_bgm() -> void:
 			var local_t := float(i) / float(step_samples)
 			var sample := 0.0
 
-			# قناة اللحن الرئيسي (Square Wave 25% duty feel)
 			if lead_freq > 0.0:
 				lead_phase += TAU * lead_freq / float(MIX_RATE)
 				var env := clampf(1.0 - local_t * 0.65, 0.0, 1.0)
 				sample += (1.0 if sin(lead_phase) > 0.25 else -1.0) * 0.22 * env
 
-			# قناة الباص (Triangle Wave)
 			bass_phase += TAU * bass_freq / float(MIX_RATE)
 			var tri := (2.0 / PI) * asin(sin(bass_phase))
 			sample += tri * 0.28
 
-			# إيقاع طبلة/هاي-هات خفيف بالضوضاء
 			if has_hat and local_t < 0.22:
 				sample += rng.randf_range(-1.0, 1.0) * 0.12 * (1.0 - local_t / 0.22)
 
@@ -175,6 +211,4 @@ func _start_bgm() -> void:
 	bgm.loop_begin = 0
 	bgm.loop_end = total_samples
 	bgm.data = data
-
-	_bgm_player.stream = bgm
-	_bgm_player.play()
+	return bgm
