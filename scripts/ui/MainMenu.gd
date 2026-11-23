@@ -6,6 +6,7 @@ extends Control
 @onready var sfx_btn: Button = $CenterBox/VBox/SettingsGrid/SfxButton
 @onready var vib_btn: Button = $CenterBox/VBox/SettingsGrid/VibButton
 @onready var auto_btn: Button = $CenterBox/VBox/SettingsGrid/AutoButton
+@onready var exit_btn: Button = $CenterBox/VBox/ExitButton
 
 
 func _ready() -> void:
@@ -14,8 +15,18 @@ func _ready() -> void:
 	sfx_btn.pressed.connect(_on_sfx_pressed)
 	vib_btn.pressed.connect(_on_vib_pressed)
 	auto_btn.pressed.connect(_on_auto_pressed)
+	exit_btn.pressed.connect(_on_exit_pressed)
 	_refresh_buttons()
 	queue_redraw()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		get_tree().quit()
+
+
+func _on_exit_pressed() -> void:
+	get_tree().quit()
 
 
 func _draw() -> void:
@@ -29,12 +40,16 @@ func _draw() -> void:
 	var bx := 6.0
 	var i := 0
 	while bx < w:
-		var bh := 56.0 + float((i * 19) % 34)
+		var bh := 105.0 + float((i * 23) % 45)
 		var by := h - 18.0 - bh
-		draw_rect(Rect2(bx, by, 44, bh), Palette.C_BRICK.darkened(0.3) if i % 2 == 0 else Palette.C_SAND.darkened(0.3))
-		draw_rect(Rect2(bx + 8, by + 12, 8, 10), Palette.C_GOLD)
-		draw_rect(Rect2(bx + 26, by + 12, 8, 10), Palette.C_GOLD if i % 2 == 1 else Palette.C_BLACK)
-		bx += 54.0
+		draw_rect(Rect2(bx, by, 48, bh), Palette.C_BRICK.darkened(0.32) if i % 2 == 0 else Palette.C_SAND.darkened(0.32))
+		draw_rect(Rect2(bx, by, 48, 5), Palette.C_DARK_BROWN)
+		var wy := by + 12.0
+		while wy < h - 32.0:
+			draw_rect(Rect2(bx + 8, wy, 8, 10), Palette.C_GOLD if (int(wy) + i) % 3 != 0 else Palette.C_BLACK)
+			draw_rect(Rect2(bx + 28, wy, 8, 10), Palette.C_GOLD if (int(wy) + i) % 2 == 0 else Palette.C_BLACK)
+			wy += 22.0
+		bx += 56.0
 		i += 1
 
 	draw_rect(Rect2(0, h - 18.0, w, 18.0), Palette.C_SAND)

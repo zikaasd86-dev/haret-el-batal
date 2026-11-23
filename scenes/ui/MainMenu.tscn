@@ -67,3 +67,8 @@ text = "VIBRATE: ON"
 layout_mode = 2
 theme_override_font_sizes/font_size = 7
 text = "AUTO-FIRE: OFF"
+
+[node name="ExitButton" type="Button" parent="CenterBox/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+text = "EXIT GAME"

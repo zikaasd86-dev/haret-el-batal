@@ -55,6 +55,17 @@ func _physics_process(_delta: float) -> bool:
 		quit(1)
 		return true
 
-	print("SMOKE TEST PASSED! Player stands solidly on ground and orientation is landscape.")
+	# التحقق من الأسلحة الـ 5 ومنطقة البداية الآمنة
+	for w in range(5):
+		player.set_weapon(w)
+	var enemies_root := _level.get_node_or_null("Enemies")
+	if enemies_root:
+		for e in enemies_root.get_children():
+			if e.position.x < 350.0:
+				printerr("TEST FAILED: Enemy spawned inside safe start zone at x=", e.position.x)
+				quit(1)
+				return true
+
+	print("SMOKE TEST PASSED! Player stands solidly on ground, 5 weapons ok, safe start zone ok.")
 	quit(0)
 	return true

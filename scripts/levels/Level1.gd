@@ -93,36 +93,38 @@ func _draw() -> void:
 	draw_rect(Rect2(0, 56, level_w, 60), Palette.C_SAND.lerp(Palette.C_TEAL, 0.45))
 	draw_rect(Rect2(0, 108, level_w, 72), Palette.C_DARK_BROWN)
 
-	# مباني الحارة الخلفية بألوان دافئة (بني، طوبي، رملي، أخضر داكن)
-	var b_x := 8.0
+	# مباني الحارة الخلفية المرتفعة (عمارات متعددة الطوابق بألوان دافئة وشرفات وفوانيس)
+	var b_x := 4.0
 	var idx := 0
-	while b_x < level_w - 40.0:
-		var bw := 44.0 + float((idx * 17) % 28)
-		var bh := 72.0 + float((idx * 23) % 42)
+	while b_x < level_w - 30.0:
+		var bw := 50.0 + float((idx * 19) % 26)
+		var bh := 118.0 + float((idx * 29) % 38) # ارتفاع 118 إلى 156 بكسل
 		var by := 160.0 - bh
 		var wall_col := Palette.C_SAND if (idx % 3 == 0) else (Palette.C_BRICK if (idx % 3 == 1) else Palette.C_WOOD)
 		draw_rect(Rect2(b_x, by, bw, bh), wall_col.darkened(0.28))
-		draw_rect(Rect2(b_x, by, bw, 4), Palette.C_DARK_BROWN)
+		# سور السطح العلوي
+		draw_rect(Rect2(b_x - 1, by, bw + 2, 5), Palette.C_DARK_BROWN)
+		draw_rect(Rect2(b_x, by + 5, bw, 2), Palette.C_CREAM.darkened(0.35))
 
-		# نوافذ وشرفات خضراء داكنة مع إضاءة دافئة
-		var wy := by + 12.0
+		# نوافذ وشرفات متعددة الطوابق
+		var wy := by + 13.0
 		while wy < 142.0:
 			var wx := b_x + 7.0
 			while wx < b_x + bw - 12.0:
 				var lit := ((idx + int(wx + wy)) % 2 == 0)
-				draw_rect(Rect2(wx, wy, 7, 10), Palette.C_DARK_GREEN)
-				draw_rect(Rect2(wx + 1, wy + 1, 5, 7), Palette.C_GOLD if lit else Palette.C_BLACK)
-				wx += 14.0
-			wy += 20.0
+				draw_rect(Rect2(wx, wy, 8, 12), Palette.C_DARK_GREEN)
+				draw_rect(Rect2(wx + 1, wy + 1, 6, 9), Palette.C_GOLD if lit else Palette.C_BLACK)
+				wx += 15.0
+			wy += 22.0
 
-		# حبل زينة/فوانيس بين المباني
+		# حبل زينة وفانوس معلق بين العمارات
 		if idx % 2 == 0:
-			var lx := b_x + bw + 4.0
-			draw_line(Vector2(b_x + bw, by + 16), Vector2(b_x + bw + 14, by + 22), Palette.C_DARK_BROWN, 1.0)
-			draw_rect(Rect2(lx, by + 20, 4, 6), Palette.C_GOLD)
-			draw_rect(Rect2(lx + 1, by + 21, 2, 4), Palette.C_CREAM)
+			var lx := b_x + bw + 3.0
+			draw_line(Vector2(b_x + bw, by + 20), Vector2(b_x + bw + 14, by + 26), Palette.C_DARK_BROWN, 1.0)
+			draw_rect(Rect2(lx, by + 24, 5, 7), Palette.C_GOLD)
+			draw_rect(Rect2(lx + 1, by + 25, 3, 5), Palette.C_CREAM)
 
-		b_x += bw + 10.0
+		b_x += bw + 8.0
 		idx += 1
 
 
@@ -373,14 +375,12 @@ func _build_physics_colliders() -> void:
 		plat_body.add_child(cs)
 
 
-## توزيع الأعداء الثلاثة (يمشي، يطلق النار، يقفز) على امتداد الحارة
+## توزيع الأعداء الثلاثة (بعد منطقة بداية آمنة 0..350 ليتدرّب البطل على الحركة والقفز)
 func _spawn_enemies() -> void:
 	var spawns := [
 		# [نوع العدو (0=يمشي, 1=يطلق نار, 2=يقفز), X بالبكسل, Y بالبكسل]
-		[0, 220.0, 158.0],
-		[1, 224.0, 110.0],
-		[0, 360.0, 94.0],
-		[2, 415.0, 158.0],
+		[0, 390.0, 94.0],
+		[2, 425.0, 158.0],
 		[1, 535.0, 126.0],
 		[0, 625.0, 94.0],
 		[2, 690.0, 158.0],
@@ -396,12 +396,14 @@ func _spawn_enemies() -> void:
 		enemies_root.add_child(enemy)
 
 
-## توزيع صناديق الإمداد (سلاح متفرق، قلب صحة، سلاح ثقيل قبل الزعيم)
+## توزيع صناديق الإمداد (أسلحة متنوعة + صحة)
 func _spawn_supply_crates() -> void:
 	var crates := [
-		[0, 300.0, 160.0], # صندوق السلاح المتفرق
+		[0, 210.0, 160.0], # صندوق السلاح المتفرق في منطقة البداية الآمنة
+		[3, 490.0, 160.0], # صندوق الليزر المتموج
 		[2, 650.0, 96.0],  # صندوق صحة على السطح
-		[1, 955.0, 160.0], # صندوق السلاح الثقيل قبل ساحة الزعيم
+		[4, 830.0, 112.0], # صندوق قاذف الشرار الناري
+		[1, 955.0, 160.0], # صندوق الشعاع الثقيل قبل ساحة الزعيم
 	]
 	for entry in crates:
 		var crate := CRATE_SCENE.instantiate()

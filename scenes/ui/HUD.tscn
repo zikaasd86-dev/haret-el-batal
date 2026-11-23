@@ -6,21 +6,30 @@
 layer = 11
 script = ExtResource("1_hud")
 
+[node name="DamageFlash" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.88, 0.12, 0.12, 0)
+
 [node name="TopBar" type="HBoxContainer" parent="."]
 anchors_preset = 10
 anchor_right = 1.0
 offset_left = 8.0
 offset_top = 4.0
 offset_right = -8.0
-offset_bottom = 18.0
+offset_bottom = 20.0
 grow_horizontal = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="HPLabel" type="Label" parent="TopBar"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.96, 0.72, 0.18, 1)
-theme_override_font_sizes/font_size = 8
-text = "HP [|||||]"
+theme_override_colors/font_color = Color(0.95, 0.25, 0.25, 1)
+theme_override_font_sizes/font_size = 9
+text = "♥♥♥♥♥"
 
 [node name="ScoreLabel" type="Label" parent="TopBar"]
 layout_mode = 2
@@ -28,15 +37,27 @@ theme_override_colors/font_color = Color(1, 0.97, 0.9, 1)
 theme_override_font_sizes/font_size = 8
 text = "SCORE 00000"
 
+[node name="WeaponLabel" type="Label" parent="TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.96, 0.72, 0.18, 1)
+theme_override_font_sizes/font_size = 8
+text = "[RIFLE]"
+
+[node name="PauseButton" type="Button" parent="TopBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+text = " || "
+
 [node name="BossBox" type="VBoxContainer" parent="."]
 visible = false
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -70.0
-offset_top = 18.0
+offset_top = 20.0
 offset_right = 70.0
-offset_bottom = 36.0
+offset_bottom = 38.0
 grow_horizontal = 2
 theme_override_constants/separation = 2
 
@@ -54,6 +75,57 @@ max_value = 60.0
 value = 60.0
 show_percentage = false
 
+[node name="PausePanel" type="PanelContainer" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -68.0
+offset_top = -54.0
+offset_right = 68.0
+offset_bottom = 54.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="PausePanel"]
+layout_mode = 2
+theme_override_constants/separation = 3
+alignment = 1
+
+[node name="Title" type="Label" parent="PausePanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.72, 0.18, 1)
+theme_override_font_sizes/font_size = 9
+text = "PAUSED / SETTINGS"
+horizontal_alignment = 1
+
+[node name="ResumeButton" type="Button" parent="PausePanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "RESUME"
+
+[node name="AutoButton" type="Button" parent="PausePanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "AUTO-FIRE: OFF"
+
+[node name="MusicButton" type="Button" parent="PausePanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "MUSIC: ON"
+
+[node name="MenuButton" type="Button" parent="PausePanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "MAIN MENU"
+
+[node name="ExitButton" type="Button" parent="PausePanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "EXIT GAME"
+
 [node name="EndPanel" type="PanelContainer" parent="."]
 visible = false
 anchors_preset = 8
@@ -61,25 +133,36 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -64.0
-offset_top = -29.0
-offset_right = 64.0
-offset_bottom = 29.0
+offset_left = -74.0
+offset_top = -44.0
+offset_right = 74.0
+offset_bottom = 44.0
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="VBox" type="VBoxContainer" parent="EndPanel"]
 layout_mode = 2
+theme_override_constants/separation = 3
 alignment = 1
 
 [node name="EndTitle" type="Label" parent="EndPanel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.96, 0.72, 0.18, 1)
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 9
 text = "STAGE 1 CLEARED!"
 horizontal_alignment = 1
 
 [node name="RestartButton" type="Button" parent="EndPanel/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 8
+theme_override_font_sizes/font_size = 7
 text = "PLAY AGAIN"
+
+[node name="MenuButton" type="Button" parent="EndPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "MAIN MENU"
+
+[node name="ExitButton" type="Button" parent="EndPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "EXIT GAME"

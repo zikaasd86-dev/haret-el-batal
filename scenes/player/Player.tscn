@@ -5,8 +5,8 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_stand"]
 size = Vector2(12, 28)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_crouch"]
-size = Vector2(16, 14)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_prone"]
+size = Vector2(20, 8)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hurtbox"]
 size = Vector2(10, 26)
@@ -20,7 +20,7 @@ script = ExtResource("1_player")
 position = Vector2(0, -15)
 
 [node name="GunBarrel" type="Line2D" parent="."]
-points = PackedVector2Array(0, -18, 14, -18)
+points = PackedVector2Array(0, -18, 15, -18)
 width = 2.5
 default_color = Color(0.658824, 0.690196, 0.721569, 1)
 
@@ -29,8 +29,8 @@ position = Vector2(0, -14)
 shape = SubResource("RectangleShape2D_stand")
 
 [node name="CrouchCollision" type="CollisionShape2D" parent="."]
-position = Vector2(0, -7)
-shape = SubResource("RectangleShape2D_crouch")
+position = Vector2(0, -4)
+shape = SubResource("RectangleShape2D_prone")
 disabled = true
 
 [node name="Hurtbox" type="Area2D" parent="."]

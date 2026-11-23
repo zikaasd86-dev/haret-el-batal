@@ -6,6 +6,8 @@ enum RewardType {
 	SPREAD_WEAPON,
 	HEAVY_WEAPON,
 	HEALTH,
+	WAVE_WEAPON,
+	FLAME_WEAPON,
 }
 
 const EXPLOSION_SCENE := preload("res://scenes/effects/Explosion.tscn")
@@ -70,6 +72,12 @@ func _on_body_entered(body: Node2D) -> void:
 		RewardType.HEAVY_WEAPON:
 			if body.has_method("set_weapon"):
 				body.set_weapon(2)
+		RewardType.WAVE_WEAPON:
+			if body.has_method("set_weapon"):
+				body.set_weapon(3)
+		RewardType.FLAME_WEAPON:
+			if body.has_method("set_weapon"):
+				body.set_weapon(4)
 		RewardType.HEALTH:
 			if body.has_method("heal"):
 				body.heal(1)
@@ -140,5 +148,29 @@ func _set_pickup_sprite() -> void:
 				"0eeeffffeee0",
 				"0eeeffffeee0",
 				".0eeeeeeee0.",
+				"..00000000..",
+			]))
+		RewardType.WAVE_WEAPON:
+			sprite.texture = ProceduralArt.create_texture("pickup_wave", PackedStringArray([
+				"..00000000..",
+				".0555555550.",
+				"056f5555f650",
+				"056f5ff5f650",
+				"056ffffff650",
+				"056f5555f650",
+				"055555555550",
+				".0555555550.",
+				"..00000000..",
+			]))
+		RewardType.FLAME_WEAPON:
+			sprite.texture = ProceduralArt.create_texture("pickup_flame", PackedStringArray([
+				"..00000000..",
+				".0dddddddd0.",
+				"0deffffffed0",
+				"0defeeeeeed0",
+				"0defffffeed0",
+				"0defeeeeeed0",
+				"0deeeeeeeed0",
+				".0dddddddd0.",
 				"..00000000..",
 			]))

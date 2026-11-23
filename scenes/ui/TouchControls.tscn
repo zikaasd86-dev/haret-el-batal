@@ -1,117 +1,17 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/TouchControls.gd" id="1_touch"]
+[ext_resource type="Script" path="res://scripts/ui/TouchPad.gd" id="2_pad"]
 
 [node name="TouchControls" type="CanvasLayer"]
 layer = 10
 script = ExtResource("1_touch")
 
-[node name="DPad" type="Node2D" parent="."]
-position = Vector2(10, 104)
-
-[node name="BtnUp" type="TouchScreenButton" parent="DPad"]
-position = Vector2(24, 0)
-action = "aim_up"
-
-[node name="Label" type="Label" parent="DPad/BtnUp"]
-offset_left = 5.0
-offset_top = 1.0
-offset_right = 18.0
-offset_bottom = 20.0
-theme_override_font_sizes/font_size = 10
-text = "^"
-horizontal_alignment = 1
-
-[node name="BtnDown" type="TouchScreenButton" parent="DPad"]
-position = Vector2(24, 46)
-action = "aim_down"
-
-[node name="Label" type="Label" parent="DPad/BtnDown"]
-offset_left = 5.0
-offset_top = 1.0
-offset_right = 18.0
-offset_bottom = 20.0
-theme_override_font_sizes/font_size = 10
-text = "v"
-horizontal_alignment = 1
-
-[node name="BtnLeft" type="TouchScreenButton" parent="DPad"]
-position = Vector2(0, 23)
-action = "move_left"
-
-[node name="Label" type="Label" parent="DPad/BtnLeft"]
-offset_left = 5.0
-offset_top = 1.0
-offset_right = 18.0
-offset_bottom = 20.0
-theme_override_font_sizes/font_size = 10
-text = "<"
-horizontal_alignment = 1
-
-[node name="BtnRight" type="TouchScreenButton" parent="DPad"]
-position = Vector2(48, 23)
-action = "move_right"
-
-[node name="Label" type="Label" parent="DPad/BtnRight"]
-offset_left = 5.0
-offset_top = 1.0
-offset_right = 18.0
-offset_bottom = 20.0
-theme_override_font_sizes/font_size = 10
-text = ">"
-horizontal_alignment = 1
-
-[node name="Actions" type="Node2D" parent="."]
-position = Vector2(240, 108)
-
-[node name="BtnAuto" type="TouchScreenButton" parent="Actions"]
-position = Vector2(42, -16)
-action = "toggle_autofire"
-
-[node name="Label" type="Label" parent="Actions/BtnAuto"]
-offset_left = 1.0
-offset_top = 1.0
-offset_right = 27.0
-offset_bottom = 14.0
-theme_override_font_sizes/font_size = 7
-text = "AUTO"
-horizontal_alignment = 1
-
-[node name="BtnWeapon" type="TouchScreenButton" parent="Actions"]
-position = Vector2(8, -16)
-action = "switch_weapon"
-
-[node name="Label" type="Label" parent="Actions/BtnWeapon"]
-offset_left = 1.0
-offset_top = 2.0
-offset_right = 23.0
-offset_bottom = 14.0
-theme_override_font_sizes/font_size = 7
-text = "WPN"
-horizontal_alignment = 1
-
-[node name="BtnFire" type="TouchScreenButton" parent="Actions"]
-position = Vector2(6, 30)
-action = "fire"
-
-[node name="Label" type="Label" parent="Actions/BtnFire"]
-offset_left = 2.0
-offset_top = 7.0
-offset_right = 26.0
-offset_bottom = 22.0
-theme_override_font_sizes/font_size = 8
-text = "FIRE"
-horizontal_alignment = 1
-
-[node name="BtnJump" type="TouchScreenButton" parent="Actions"]
-position = Vector2(42, 22)
-action = "jump"
-
-[node name="Label" type="Label" parent="Actions/BtnJump"]
-offset_left = 2.0
-offset_top = 7.0
-offset_right = 26.0
-offset_bottom = 22.0
-theme_override_font_sizes/font_size = 8
-text = "JMP"
-horizontal_alignment = 1
+[node name="TouchPad" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_pad")
