@@ -46,11 +46,14 @@ jobs:
           unzip -q templates.tpz -d templates_tmp
           mv templates_tmp/templates/* "$HOME/.local/share/godot/export_templates/4.3.stable/"
           rm -rf templates.tpz templates_tmp
+          ls -la "$HOME/.local/share/godot/export_templates/4.3.stable/android_debug.apk"
 
-      - name: Configure Godot Android Editor Settings
+      - name: Configure Godot Android Settings & Preset
         run: |
-          mkdir -p "$HOME/.config/godot"
-          cat <<EOF > "$HOME/.config/godot/editor_settings-4.tres"
+          export XDG_CONFIG_HOME="$HOME/.config"
+          export XDG_DATA_HOME="$HOME/.local/share"
+          mkdir -p "$XDG_CONFIG_HOME/godot"
+          cat <<EOF > "$XDG_CONFIG_HOME/godot/editor_settings-4.tres"
           [gd_resource type="EditorSettings" format=3]
 
           [resource]
@@ -60,12 +63,23 @@ jobs:
           export/android/debug_keystore_user = "androiddebugkey"
           export/android/debug_keystore_pass = "android"
           EOF
-          cp "$HOME/.config/godot/editor_settings-4.tres" "$HOME/.config/godot/editor_settings-4.3.tres"
+
+          cat <<EOF >> export_presets.cfg
+          gradle_build/use_gradle_build=false
+          gradle_build/export_format=0
+          custom_template/debug="${HOME}/.local/share/godot/export_templates/4.3.stable/android_debug.apk"
+          custom_template/release="${HOME}/.local/share/godot/export_templates/4.3.stable/android_release.apk"
+          keystore/debug="${HOME}/.android/debug.keystore"
+          keystore/debug_user="androiddebugkey"
+          keystore/debug_password="android"
+          EOF
 
       - name: Import Assets & Export Android APK
         run: |
-          godot --headless --path . --import --quit || true
-          godot --headless --verbose --path . --export-debug "Android" HaretElBatal.apk
+          export XDG_CONFIG_HOME="$HOME/.config"
+          export XDG_DATA_HOME="$HOME/.local/share"
+          godot --headless --path . --import || true
+          godot --headless --path . --export-debug "Android" HaretElBatal.apk
           ls -lh HaretElBatal.apk
 
       - name: Upload APK Artifact
