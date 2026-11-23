@@ -50,7 +50,7 @@ jobs:
       - name: Configure Godot Android Editor Settings
         run: |
           mkdir -p "$HOME/.config/godot"
-          cat <<EOF > "$HOME/.config/godot/editor_settings-4.3.tres"
+          cat <<EOF > "$HOME/.config/godot/editor_settings-4.tres"
           [gd_resource type="EditorSettings" format=3]
 
           [resource]
@@ -60,11 +60,12 @@ jobs:
           export/android/debug_keystore_user = "androiddebugkey"
           export/android/debug_keystore_pass = "android"
           EOF
+          cp "$HOME/.config/godot/editor_settings-4.tres" "$HOME/.config/godot/editor_settings-4.3.tres"
 
       - name: Import Assets & Export Android APK
         run: |
-          godot --headless --path . --import || true
-          godot --headless --path . --export-debug "Android" HaretElBatal.apk
+          godot --headless --path . --import --quit || true
+          godot --headless --verbose --path . --export-debug "Android" HaretElBatal.apk
           ls -lh HaretElBatal.apk
 
       - name: Upload APK Artifact
