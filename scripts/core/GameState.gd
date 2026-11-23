@@ -28,6 +28,8 @@ var is_level_cleared: bool = false
 
 func _ready() -> void:
 	load_settings()
+	if OS.has_feature("mobile"):
+		DisplayServer.screen_set_orientation(DisplayServer.SCREEN_SENSOR_LANDSCAPE)
 
 
 func reset_run() -> void:

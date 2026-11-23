@@ -29,6 +29,7 @@ func _ready() -> void:
 	GameState.screen_shake_requested.connect(_on_screen_shake)
 	_setup_tilesets()
 	_build_alley_layout()
+	_build_physics_colliders()
 	_spawn_enemies()
 	_spawn_supply_crates()
 	_setup_camera()
@@ -305,6 +306,71 @@ func _build_alley_layout() -> void:
 		platform_tiles.set_cell(Vector2i(x, 7), 0, Vector2i(2, 0))
 	for x in range(70, 73):
 		platform_tiles.set_cell(Vector2i(x, 5), 0, Vector2i(3, 0))
+
+
+## إنشاء تصادمات فيزيائية صلبة (StaticBody2D) للأرضية والمنصات لضمان عدم السقوط أبداً
+func _build_physics_colliders() -> void:
+	# 1. الأرضية الصلبة (Layer 1: World) مقسّمة حول الفجوتين [28..29] و [49..50]
+	var ground_body := StaticBody2D.new()
+	ground_body.name = "GroundColliders"
+	ground_body.collision_layer = 1
+	ground_body.collision_mask = 0
+	add_child(ground_body)
+
+	var ground_segments := [
+		[0, 28],    # من البداية حتى الفجوة الأولى
+		[30, 49],   # بين الفجوتين
+		[51, 80],   # حتى نهاية ساحة الزعيم
+	]
+	for seg in ground_segments:
+		var x1 := float(seg[0] * TILE_SIZE)
+		var x2 := float(seg[1] * TILE_SIZE)
+		var cs := CollisionShape2D.new()
+		var rect := RectangleShape2D.new()
+		rect.size = Vector2(x2 - x1, 32.0)
+		cs.shape = rect
+		cs.position = Vector2((x1 + x2) * 0.5, float(GROUND_ROW * TILE_SIZE) + 16.0)
+		ground_body.add_child(cs)
+
+	# جدار يسار المرحلة
+	var wall_cs := CollisionShape2D.new()
+	var wall_rect := RectangleShape2D.new()
+	wall_rect.size = Vector2(16.0, 200.0)
+	wall_cs.shape = wall_rect
+	wall_cs.position = Vector2(-8.0, 80.0)
+	ground_body.add_child(wall_cs)
+
+	# 2. المنصات أحادية الاتجاه (Layer 6: OneWayPlatform = 32)
+	var plat_body := StaticBody2D.new()
+	plat_body.name = "PlatformColliders"
+	plat_body.collision_layer = 32
+	plat_body.collision_mask = 0
+	add_child(plat_body)
+
+	var one_way_spans := [
+		[8, 10, 9],   # صناديق بداية الحارة
+		[12, 16, 7],  # كشك الشاي
+		[20, 26, 6],  # أسطح منازل
+		[24, 25, 9],  # صندوق
+		[32, 33, 9],  # درج صناديق 1
+		[33, 34, 8],  # درج صناديق 2
+		[36, 43, 6],  # سطح كشك
+		[46, 54, 7],  # جسر فوق الفجوة الثانية
+		[56, 58, 9],  # صناديق
+		[65, 69, 7],  # منصة ساحة الزعيم 1
+		[70, 73, 5],  # منصة ساحة الزعيم 2
+	]
+	for span in one_way_spans:
+		var x1 := float(span[0] * TILE_SIZE)
+		var x2 := float(span[1] * TILE_SIZE)
+		var y_top := float(span[2] * TILE_SIZE)
+		var cs := CollisionShape2D.new()
+		var rect := RectangleShape2D.new()
+		rect.size = Vector2(x2 - x1, 6.0)
+		cs.shape = rect
+		cs.position = Vector2((x1 + x2) * 0.5, y_top + 3.0)
+		cs.one_way_collision = true
+		plat_body.add_child(cs)
 
 
 ## توزيع الأعداء الثلاثة (يمشي، يطلق النار، يقفز) على امتداد الحارة

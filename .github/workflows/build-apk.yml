@@ -71,11 +71,12 @@ jobs:
           keystore/debug_password="android"
           EOF
 
-      - name: Import Assets & Export Android APK
+      - name: Import Assets, Run Physics Smoke Test & Export APK
         run: |
           export XDG_CONFIG_HOME="$HOME/.config"
           export XDG_DATA_HOME="$HOME/.local/share"
           godot --headless --path . --import || true
+          godot --headless --path . -s res://scripts/tests/smoke_test.gd
           godot --headless --path . --export-debug "Android" HaretElBatal.apk
           ls -lh HaretElBatal.apk
 
