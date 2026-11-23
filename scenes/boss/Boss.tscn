@@ -1,0 +1,41 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/boss/Boss.gd" id="1_boss"]
+[ext_resource type="Script" path="res://scripts/boss/BossCore.gd" id="2_core"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(64, 124)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_core"]
+size = Vector2(22, 22)
+
+[node name="Boss" type="StaticBody2D"]
+collision_layer = 1
+collision_mask = 0
+script = ExtResource("1_boss")
+
+[node name="BodySprite" type="Sprite2D" parent="."]
+position = Vector2(0, -62)
+scale = Vector2(2.65, 3.85)
+
+[node name="BodyCollision" type="CollisionShape2D" parent="."]
+position = Vector2(0, -62)
+shape = SubResource("RectangleShape2D_body")
+
+[node name="CoreArea" type="Area2D" parent="."]
+position = Vector2(-14, -36)
+collision_layer = 4
+collision_mask = 8
+script = ExtResource("2_core")
+
+[node name="CoreSprite" type="Sprite2D" parent="CoreArea"]
+scale = Vector2(2, 2)
+
+[node name="CoreCollision" type="CollisionShape2D" parent="CoreArea"]
+shape = SubResource("RectangleShape2D_core")
+
+[node name="UpperCannon" type="Marker2D" parent="."]
+position = Vector2(-36, -96)
+
+[node name="LowerCannon" type="Marker2D" parent="."]
+position = Vector2(-36, -34)

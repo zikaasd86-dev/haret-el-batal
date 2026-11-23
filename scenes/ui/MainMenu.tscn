@@ -1,0 +1,69 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/MainMenu.gd" id="1_menu"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu")
+
+[node name="CenterBox" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="CenterBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="CenterBox/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.72, 0.18, 1)
+theme_override_font_sizes/font_size = 16
+text = "HARET EL BATAL"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="CenterBox/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.97, 0.9, 1)
+theme_override_font_sizes/font_size = 8
+text = "2D RUN & GUN PROTOTYPE"
+horizontal_alignment = 1
+
+[node name="PlayButton" type="Button" parent="CenterBox/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "PLAY STAGE 1"
+
+[node name="SettingsGrid" type="GridContainer" parent="CenterBox/VBox"]
+layout_mode = 2
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 4
+columns = 2
+
+[node name="MusicButton" type="Button" parent="CenterBox/VBox/SettingsGrid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "MUSIC: ON"
+
+[node name="SfxButton" type="Button" parent="CenterBox/VBox/SettingsGrid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "SFX: ON"
+
+[node name="VibButton" type="Button" parent="CenterBox/VBox/SettingsGrid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "VIBRATE: ON"
+
+[node name="AutoButton" type="Button" parent="CenterBox/VBox/SettingsGrid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "AUTO-FIRE: OFF"
