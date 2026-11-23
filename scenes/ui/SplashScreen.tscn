@@ -1,0 +1,53 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/SplashScreen.gd" id="1_splash"]
+
+[node name="SplashScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_splash")
+
+[node name="CenterBox" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="CenterBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="Logo" type="TextureRect" parent="CenterBox/VBox"]
+custom_minimum_size = Vector2(52, 52)
+layout_mode = 2
+size_flags_horizontal = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Title" type="Label" parent="CenterBox/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.72, 0.18, 1)
+theme_override_font_sizes/font_size = 14
+text = "HARET EL BATAL"
+horizontal_alignment = 1
+
+[node name="LoadingBar" type="ProgressBar" parent="CenterBox/VBox"]
+custom_minimum_size = Vector2(140, 8)
+layout_mode = 2
+size_flags_horizontal = 4
+max_value = 100.0
+show_percentage = false
+
+[node name="StatusLabel" type="Label" parent="CenterBox/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.82, 0.6, 1)
+theme_override_font_sizes/font_size = 7
+text = "LOADING..."
+horizontal_alignment = 1

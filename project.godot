@@ -8,8 +8,11 @@ config_version=5
 
 config/name="Haret El Batal"
 config/description="2D Run & Gun Mobile Prototype - حارة البطل"
-run/main_scene="res://scenes/ui/MainMenu.tscn"
+run/main_scene="res://scenes/ui/SplashScreen.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
+boot_splash/bg_color=Color(0.101961, 0.0745098, 0.0627451, 1)
+boot_splash/image="res://assets/icons/icon.png"
+boot_splash/fullsize=false
 config/icon="res://assets/icons/icon.png"
 
 [autoload]
