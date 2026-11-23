@@ -46,7 +46,6 @@ jobs:
           unzip -q templates.tpz -d templates_tmp
           mv templates_tmp/templates/* "$HOME/.local/share/godot/export_templates/4.3.stable/"
           rm -rf templates.tpz templates_tmp
-          ls -la "$HOME/.local/share/godot/export_templates/4.3.stable/android_debug.apk"
 
       - name: Configure Godot Android Settings & Preset
         run: |
@@ -67,8 +66,6 @@ jobs:
           cat <<EOF >> export_presets.cfg
           gradle_build/use_gradle_build=false
           gradle_build/export_format=0
-          custom_template/debug="${HOME}/.local/share/godot/export_templates/4.3.stable/android_debug.apk"
-          custom_template/release="${HOME}/.local/share/godot/export_templates/4.3.stable/android_release.apk"
           keystore/debug="${HOME}/.android/debug.keystore"
           keystore/debug_user="androiddebugkey"
           keystore/debug_password="android"
