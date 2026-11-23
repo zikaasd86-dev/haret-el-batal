@@ -47,6 +47,10 @@ func _physics_process(delta: float) -> void:
 	if not is_instance_valid(player):
 		return
 
+	var half_w := get_viewport().get_visible_rect().size.x * 0.5
+	var max_cam_x := float(LEVEL_TILES_W * TILE_SIZE) - half_w
+	var boss_cam_x := max_cam_x
+
 	# تثبيت الكاميرا عند دخول ساحة الزعيم
 	if not _boss_locked and player.global_position.x >= BOSS_TRIGGER_X:
 		_boss_locked = true
@@ -55,11 +59,11 @@ func _physics_process(delta: float) -> void:
 
 	var target_x: float
 	if _boss_locked:
-		target_x = BOSS_CAM_X
+		target_x = boss_cam_x
 		# منع البطل من الخروج يسار ساحة الزعيم
-		player.global_position.x = maxf(player.global_position.x, BOSS_CAM_X - 152.0)
+		player.global_position.x = maxf(player.global_position.x, boss_cam_x - half_w + 8.0)
 	else:
-		target_x = clampf(player.global_position.x + 28.0, 160.0, BOSS_CAM_X)
+		target_x = clampf(player.global_position.x + 28.0, half_w, boss_cam_x)
 
 	camera.global_position.x = lerpf(camera.global_position.x, target_x, minf(1.0, delta * 8.0))
 	camera.global_position.y = 90.0
@@ -223,6 +227,8 @@ func _create_tileset(atlas_tex: Texture2D, col_layer: int, one_way: bool) -> Til
 	var source := TileSetAtlasSource.new()
 	source.texture = atlas_tex
 	source.texture_region_size = Vector2i(TILE_SIZE, TILE_SIZE)
+	# مهم جداً في Godot 4: يجب إضافة الـ Source للـ TileSet قبل إنشاء البلاطات ومضلعات التصادم
+	ts.add_source(source, 0)
 
 	for i in range(4):
 		var coords := Vector2i(i, 0)
@@ -245,7 +251,6 @@ func _create_tileset(atlas_tex: Texture2D, col_layer: int, one_way: bool) -> Til
 			data.add_collision_polygon(0)
 			data.set_collision_polygon_points(0, 0, poly)
 
-	ts.add_source(source, 0)
 	return ts
 
 

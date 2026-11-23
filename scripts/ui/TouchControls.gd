@@ -2,6 +2,8 @@ extends CanvasLayer
 ## واجهة التحكم اللمسي للموبايل - "حارة البطل"
 ## أزرار شفافة: D-Pad (يدعم الـ 8 اتجاهات مع السحب) + قفز + إطلاق نار + تبديل السلاح + إطلاق تلقائي
 
+@onready var dpad_root: Node2D = $DPad
+@onready var actions_root: Node2D = $Actions
 @onready var btn_left: TouchScreenButton = $DPad/BtnLeft
 @onready var btn_right: TouchScreenButton = $DPad/BtnRight
 @onready var btn_up: TouchScreenButton = $DPad/BtnUp
@@ -16,8 +18,17 @@ extends CanvasLayer
 
 func _ready() -> void:
 	_setup_button_textures()
+	_layout_for_screen()
+	get_viewport().size_changed.connect(_layout_for_screen)
 	GameState.autofire_changed.connect(_on_autofire_changed)
 	_on_autofire_changed(GameState.auto_fire_enabled)
+
+
+## توزيع الأزرار اللمسية على أقصى اليسار وأقصى اليمين لتناسب كل شاشات الموبايل العريضة
+func _layout_for_screen() -> void:
+	var vp := get_viewport().get_visible_rect().size
+	dpad_root.position = Vector2(12.0, vp.y - 76.0)
+	actions_root.position = Vector2(vp.x - 84.0, vp.y - 72.0)
 
 
 func _setup_button_textures() -> void:

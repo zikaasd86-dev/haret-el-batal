@@ -19,21 +19,26 @@ func _ready() -> void:
 
 
 func _draw() -> void:
-	# خلفية غسق الحارة المصرية مع مباني وفوانيس
-	draw_rect(Rect2(0, 0, 320, 65), Palette.C_TEAL)
-	draw_rect(Rect2(0, 62, 320, 58), Palette.C_SAND.lerp(Palette.C_TEAL, 0.45))
-	draw_rect(Rect2(0, 118, 320, 62), Palette.C_DARK_BROWN)
+	# خلفية غسق الحارة المصرية تملأ عرض الشاشة بالكامل مهما كانت نسبة الموبايل
+	var w := maxf(320.0, size.x)
+	var h := maxf(180.0, size.y)
+	draw_rect(Rect2(0, 0, w, h * 0.36), Palette.C_TEAL)
+	draw_rect(Rect2(0, h * 0.34, w, h * 0.33), Palette.C_SAND.lerp(Palette.C_TEAL, 0.45))
+	draw_rect(Rect2(0, h * 0.65, w, h * 0.35), Palette.C_DARK_BROWN)
 
-	for i in range(6):
-		var bx := 6.0 + i * 54.0
+	var bx := 6.0
+	var i := 0
+	while bx < w:
 		var bh := 56.0 + float((i * 19) % 34)
-		var by := 162.0 - bh
+		var by := h - 18.0 - bh
 		draw_rect(Rect2(bx, by, 44, bh), Palette.C_BRICK.darkened(0.3) if i % 2 == 0 else Palette.C_SAND.darkened(0.3))
 		draw_rect(Rect2(bx + 8, by + 12, 8, 10), Palette.C_GOLD)
 		draw_rect(Rect2(bx + 26, by + 12, 8, 10), Palette.C_GOLD if i % 2 == 1 else Palette.C_BLACK)
+		bx += 54.0
+		i += 1
 
-	draw_rect(Rect2(0, 162, 320, 18), Palette.C_SAND)
-	draw_rect(Rect2(0, 162, 320, 2), Palette.C_CREAM)
+	draw_rect(Rect2(0, h - 18.0, w, 18.0), Palette.C_SAND)
+	draw_rect(Rect2(0, h - 18.0, w, 2.0), Palette.C_CREAM)
 
 
 func _on_play_pressed() -> void:
