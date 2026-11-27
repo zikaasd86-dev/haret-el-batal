@@ -68,6 +68,10 @@ func _process(delta: float) -> void:
 	var player := get_tree().get_first_node_in_group("player")
 	if player and player.has_method("get_weapon_name"):
 		wpn_label.text = "STG %d  [%s]" % [GameState.current_stage, player.get_weapon_name()]
+		if player.get("z_ammo") and player.z_ammo > 0:
+			wpn_label.modulate = Color(1.35, 1.15, 0.35, 1.0)
+		else:
+			wpn_label.modulate = Color.WHITE
 
 
 func _notification(what: int) -> void:

@@ -6,11 +6,13 @@ extends CharacterBody2D
 ## - 5 أسلحة أصلية بتغيّر بصري واضح + أنيميشن موت واضح مع انفجار واهتزاز
 
 enum WeaponType {
-	RIFLE,  # 0: رشاش الحارة السريع
-	SPREAD, # 1: سلاح متفرق (3 طلقات)
-	HEAVY,  # 2: شعاع ثقيل (ضرر مضاعف)
-	WAVE,   # 3: ليزر متموج مزدوج
-	FLAME,  # 4: قاذف شرار سريع (5 طلقات)
+	RIFLE,   # 0: رشاش الحارة السريع
+	SPREAD,  # 1: سلاح متفرق (3 طلقات)
+	HEAVY,   # 2: شعاع ثقيل (ضرر مضاعف)
+	WAVE,    # 3: ليزر متموج مزدوج
+	FLAME,   # 4: قاذف شرار سريع (5 طلقات)
+	MISSILE, # 5: قاذف صواريخ متفجرة (المرحلة 3)
+	Z_CANNON,# 6: مدفع Z الخارق (هدية نادرة - 5 طلقات ساحقة)
 }
 
 const BULLET_SCENE := preload("res://scenes/player/Bullet.tscn")
@@ -34,6 +36,9 @@ var is_prone: bool = false
 var is_dead: bool = false
 var aim_direction: Vector2 = Vector2.RIGHT
 var current_weapon: WeaponType = WeaponType.RIFLE
+var inventory: Array[int] = [0]
+var current_inv_index: int = 0
+var z_ammo: int = 0
 
 var _jumps_left: int = 2
 var _coyote_timer: float = 0.0
@@ -63,7 +68,15 @@ var _tex_prone: Texture2D
 func _ready() -> void:
 	add_to_group("player")
 	hp = max_hp
-	current_weapon = clampi(GameState.saved_weapon, 0, 4) as WeaponType
+	if GameState.saved_inventory.is_empty():
+		GameState.saved_inventory = [0]
+	inventory = GameState.saved_inventory.duplicate()
+	current_inv_index = 0
+	for i in range(inventory.size()):
+		if inventory[i] == GameState.saved_weapon:
+			current_inv_index = i
+			break
+	current_weapon = inventory[current_inv_index] as WeaponType
 	_build_sprites()
 	sprite.texture = _tex_idle
 	prone_shape.disabled = true
@@ -130,24 +143,63 @@ func _handle_input_actions() -> void:
 		_jump_buffer_timer = jump_buffer_time
 
 
+## التبديل بين الأسلحة المحفوظة في الحقيبة (بحد أقصى 3 أسلحة)
 func cycle_weapon() -> void:
-	set_weapon((int(current_weapon) + 1) % 5)
+	if inventory.size() <= 1:
+		return
+	current_inv_index = (current_inv_index + 1) % inventory.size()
+	if z_ammo <= 0:
+		current_weapon = inventory[current_inv_index] as WeaponType
+		GameState.saved_weapon = int(current_weapon)
+		_apply_weapon_visuals()
+		_play_sfx("jump")
 
 
-func set_weapon(weapon_idx: int) -> void:
-	current_weapon = clampi(weapon_idx, 0, 4) as WeaponType
-	GameState.saved_weapon = int(current_weapon)
-	_apply_weapon_visuals()
+## إضافة سلاح للحقيبة (بحد أقصى 3 أسلحة) أو تفعيل مدفع Z الخارق بـ 5 طلقات
+func add_weapon(weapon_idx: int) -> void:
+	if weapon_idx == int(WeaponType.Z_CANNON):
+		z_ammo = 5
+		current_weapon = WeaponType.Z_CANNON
+		_apply_weapon_visuals()
+		_play_sfx("jump")
+		return
+
+	var w_clamped := clampi(weapon_idx, 0, 5)
+	if w_clamped in inventory:
+		current_inv_index = inventory.find(w_clamped)
+	else:
+		if inventory.size() < 3:
+			inventory.append(w_clamped)
+			current_inv_index = inventory.size() - 1
+		else:
+			# استبدال السلاح النشط حالياً عند امتلاء الحقيبة بـ 3 أسلحة
+			inventory[current_inv_index] = w_clamped
+
+	if z_ammo <= 0:
+		current_weapon = inventory[current_inv_index] as WeaponType
+		GameState.saved_weapon = int(current_weapon)
+		_apply_weapon_visuals()
+
+	GameState.saved_inventory = inventory.duplicate()
 	_play_sfx("jump")
 
 
+func set_weapon(weapon_idx: int) -> void:
+	add_weapon(weapon_idx)
+
+
 func get_weapon_name() -> String:
+	if z_ammo > 0:
+		return "Z-CANNON: %d" % z_ammo
+	var w_name := "RIFLE"
 	match current_weapon:
-		WeaponType.SPREAD: return "SPREAD"
-		WeaponType.HEAVY:  return "HEAVY"
-		WeaponType.WAVE:   return "WAVE"
-		WeaponType.FLAME:  return "FLAME"
-		_:                 return "RIFLE"
+		WeaponType.SPREAD:  w_name = "SPREAD"
+		WeaponType.HEAVY:   w_name = "HEAVY"
+		WeaponType.WAVE:    w_name = "WAVE"
+		WeaponType.FLAME:   w_name = "FLAME"
+		WeaponType.MISSILE: w_name = "MISSILE"
+		_:                  w_name = "RIFLE"
+	return "%s [%d/3]" % [w_name, inventory.size()]
 
 
 func heal(amount: int = 1) -> void:
@@ -179,6 +231,14 @@ func _apply_weapon_visuals() -> void:
 			gun_barrel.width = 4.5
 			gun_barrel.default_color = Palette.C_RED_CORE
 			sprite.modulate = Color(1.12, 0.94, 0.90, 1.0)
+		WeaponType.MISSILE:
+			gun_barrel.width = 4.8
+			gun_barrel.default_color = Palette.C_WOOD.lightened(0.2)
+			sprite.modulate = Color(1.15, 1.05, 0.90, 1.0)
+		WeaponType.Z_CANNON:
+			gun_barrel.width = 6.2
+			gun_barrel.default_color = Palette.C_GOLD
+			sprite.modulate = Color(1.3, 1.25, 0.8, 1.0)
 
 
 func _handle_movement(delta: float) -> void:
@@ -301,6 +361,19 @@ func _fire_weapon() -> void:
 			for deg in [-22.0, -11.0, 0.0, 11.0, 22.0]:
 				_spawn_bullet(origin, aim_direction.rotated(deg_to_rad(deg)), 215.0, 1, 4)
 			_fire_timer = 0.34
+		WeaponType.MISSILE:
+			_spawn_bullet(origin, aim_direction, 260.0, 3, 5)
+			_fire_timer = 0.28
+			GameState.request_shake(2.0, 0.08)
+		WeaponType.Z_CANNON:
+			_spawn_bullet(origin, aim_direction, 340.0, 8, 6)
+			_fire_timer = 0.35
+			GameState.request_shake(5.5, 0.22)
+			GameState.vibrate(100)
+			z_ammo -= 1
+			if z_ammo <= 0:
+				current_weapon = inventory[current_inv_index] as WeaponType
+				_apply_weapon_visuals()
 
 	_play_sfx("shoot")
 
@@ -316,6 +389,8 @@ func _get_barrel_length() -> float:
 		WeaponType.SPREAD: return 13.0
 		WeaponType.HEAVY:  return 18.0
 		WeaponType.FLAME:  return 14.0
+		WeaponType.MISSILE:return 16.0
+		WeaponType.Z_CANNON:return 21.0
 		_:                 return 15.0
 
 

@@ -8,6 +8,8 @@ enum RewardType {
 	HEALTH,
 	WAVE_WEAPON,
 	FLAME_WEAPON,
+	MISSILE_WEAPON,
+	Z_CANNON,
 }
 
 const EXPLOSION_SCENE := preload("res://scenes/effects/Explosion.tscn")
@@ -78,6 +80,12 @@ func _on_body_entered(body: Node2D) -> void:
 		RewardType.FLAME_WEAPON:
 			if body.has_method("set_weapon"):
 				body.set_weapon(4)
+		RewardType.MISSILE_WEAPON:
+			if body.has_method("set_weapon"):
+				body.set_weapon(5)
+		RewardType.Z_CANNON:
+			if body.has_method("set_weapon"):
+				body.set_weapon(6)
 		RewardType.HEALTH:
 			if body.has_method("heal"):
 				body.heal(1)
@@ -94,6 +102,23 @@ func _play_sfx(sfx_name: String) -> void:
 
 
 func _set_crate_sprite() -> void:
+	if reward_type == RewardType.Z_CANNON:
+		sprite.texture = ProceduralArt.create_texture("supply_crate_z", PackedStringArray([
+			"0000000000000000",
+			"0666666666666660",
+			"06fffeeeeee6ff60",
+			"06ff6666fee6ff60",
+			"06ff666fee66ff60",
+			"06ff66fee666ff60",
+			"06ff6fee6666ff60",
+			"06fffeeeeeeeff60",
+			"06ffffffffffff60",
+			"0666666666666660",
+			"0000000000000000",
+		]))
+		sprite.position = Vector2(0, -6)
+		return
+
 	sprite.texture = ProceduralArt.create_texture("supply_crate", PackedStringArray([
 		"0000000000000000",
 		"0662222222222660",
@@ -173,4 +198,31 @@ func _set_pickup_sprite() -> void:
 				"0deeeeeeeed0",
 				".0dddddddd0.",
 				"..00000000..",
+			]))
+		RewardType.MISSILE_WEAPON:
+			sprite.texture = ProceduralArt.create_texture("pickup_missile", PackedStringArray([
+				"..00000000..",
+				".0222222220.",
+				"02effffffe20",
+				"02ef2222fe20",
+				"02effffffe20",
+				"02ef22222220",
+				"02ef22222220",
+				".0222222220.",
+				"..00000000..",
+			]))
+		RewardType.Z_CANNON:
+			sprite.texture = ProceduralArt.create_texture("pickup_z_cannon", PackedStringArray([
+				"...00000000...",
+				"..0666666660..",
+				".06ffffffff60.",
+				".06fffffffe60.",
+				".066666fee660.",
+				".06666fee6660.",
+				".0666fee66660.",
+				".066fee666660.",
+				".06feeeeeee60.",
+				".06ffffffff60.",
+				"..0666666660..",
+				"...00000000...",
 			]))

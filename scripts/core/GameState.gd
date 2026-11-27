@@ -23,6 +23,7 @@ var lives: int = 3
 var current_stage: int = 1
 var unlocked_stage: int = 1
 var saved_weapon: int = 0
+var saved_inventory: Array[int] = [0]
 var current_boss_name: String = "ZAEEM HARET EL MAGANEEN"
 
 var auto_fire_enabled: bool = false
@@ -45,6 +46,7 @@ func start_new_campaign() -> void:
 	lives = 3
 	current_stage = 1
 	saved_weapon = 0
+	saved_inventory = [0]
 	is_game_over = false
 	is_level_cleared = false
 	score_changed.emit(score)

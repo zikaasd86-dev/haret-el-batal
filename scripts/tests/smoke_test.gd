@@ -55,9 +55,19 @@ func _physics_process(_delta: float) -> bool:
 		quit(1)
 		return true
 
-	# التحقق من الأسلحة الـ 5 ومنطقة البداية الآمنة
-	for w in range(5):
-		player.set_weapon(w)
+	# التحقق من نظام حقيبة الـ 3 أسلحة والأسلحة الجديدة ومدفع Z
+	for w in range(6):
+		player.add_weapon(w)
+	if player.inventory.size() > 3:
+		printerr("TEST FAILED: Inventory exceeded 3 weapons! count=", player.inventory.size())
+		quit(1)
+		return true
+
+	player.add_weapon(6)
+	if player.z_ammo != 5:
+		printerr("TEST FAILED: Z_CANNON did not set 5 ammo! got=", player.z_ammo)
+		quit(1)
+		return true
 	var enemies_root := _level.get_node_or_null("Enemies")
 	if enemies_root:
 		for e in enemies_root.get_children():
