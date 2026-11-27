@@ -74,6 +74,12 @@ func _physics_process(delta: float) -> void:
 		global_position.x = _base_pos.x - 45.0 + sin(_anim_time * 0.55) * 55.0
 		global_position.y = _base_pos.y - 26.0 + cos(_anim_time * 0.9) * 20.0
 		head_area.position.y = _head_base_y + sin(_anim_time * 1.4) * 5.0
+	elif boss_variant == 3:
+		# زعيم المرحلة 3 (الغول الحديدي): آلة حرب ومدرعة ميكا عملاقة
+		global_position.x = _base_pos.x - 30.0 + sin(_anim_time * 0.42) * 35.0
+		head_area.position.y = _head_base_y + sin(_anim_time * 1.6) * 4.0
+		if absf(sin(_anim_time * 1.6)) > 0.96 and is_active:
+			GameState.request_shake(0.8, 0.04)
 	else:
 		# زعيم المرحلة 1: رأس الوحش يتحرك صعوداً وهبوطاً
 		head_area.position.y = _head_base_y + sin(_anim_time) * 9.0
@@ -139,6 +145,36 @@ func _perform_phase_attack(player: Node2D) -> void:
 				for deg in [-36.0, -18.0, 0.0, 18.0, 36.0]:
 					_spawn_bullet(origin, base_dir.rotated(deg_to_rad(deg)), 188.0)
 				_attack_timer = 0.78
+		return
+
+	if boss_variant == 3:
+		# أنماط هجوم زعيم المرحلة 3 (الغول الحديدي - مدافع مزدوجة وهاون جوي)
+		var upper_origin := upper_cannon.global_position
+		var lower_origin := lower_cannon.global_position
+		var head_origin := head_area.global_position + Vector2(-16, 4)
+		match current_phase:
+			1:
+				if _attack_step % 2 == 0:
+					var dir := (target_pos - upper_origin).normalized()
+					_spawn_bullet(upper_origin, dir, 185.0)
+					_spawn_bullet(upper_origin, dir.rotated(deg_to_rad(-12.0)), 180.0)
+				else:
+					var dir := (target_pos - lower_origin).normalized()
+					_spawn_bullet(lower_origin, dir, 185.0)
+					_spawn_bullet(lower_origin, dir.rotated(deg_to_rad(12.0)), 180.0)
+				_attack_timer = 0.95
+			2:
+				var dir := (target_pos - head_origin).normalized()
+				_spawn_bullet(head_origin, dir, 195.0)
+				_spawn_bullet(upper_origin, Vector2(-0.4, -1.0).normalized(), 210.0)
+				_spawn_bullet(upper_origin, Vector2(-0.8, -0.9).normalized(), 200.0)
+				_attack_timer = 0.82
+			3:
+				var base_dir := (target_pos - head_origin).normalized()
+				for deg in [-28.0, -14.0, 0.0, 14.0, 28.0]:
+					_spawn_bullet(head_origin, base_dir.rotated(deg_to_rad(deg)), 205.0)
+				_spawn_bullet(lower_origin, (target_pos - lower_origin).normalized(), 215.0)
+				_attack_timer = 0.68
 		return
 
 	# أنماط هجوم زعيم المرحلة 1 (طلقات طويلة المدى تعبر الشاشة كلها لمنع الاختباء بعيداً!)
@@ -268,6 +304,52 @@ func _build_sprites() -> void:
 			".0aa111111111111aa0.",
 			"..0aaaa166661aaaa0..",
 			"...00000000000000...",
+		]))
+	elif boss_variant == 3:
+		# زعيم المرحلة 3: "الغول الحديدي" (آلة حرب صناعية مصفحة مع خطوط تحذير صفراء وعوادم)
+		body_sprite.texture = ProceduralArt.create_texture("boss_mech_body", PackedStringArray([
+			"......000000000000......",
+			"...000aaaaaaaaaaaa000...",
+			"..0aabbbbbbbbbbbbaab0..",
+			".0abbccccccccccccbba0..",
+			".0ab06060606060600ba0..",
+			".0ab60606060606060ba0..",
+			"0ab0aaaaaaaaaaaa0ba00..",
+			"0abbbbbbbbbbbbbbbbbb0..",
+			"0ac1111111111111111ca0.",
+			"0ab1dddddddddddddd1ba0.",
+			"0ab1deeeeeeeeeeeed1ba0.",
+			"0ab1dddddddddddddd1ba0.",
+			"0ac1111111111111111ca0.",
+			"0abbbbbbbbbbbbbbbbbb0..",
+			".00bb000000000000bb00..",
+			"..0bb0..........0bb0...",
+			".0bbb0..........0bbb0..",
+			"0ccccc0........0ccccc0.",
+			"0000000........0000000.",
+		]))
+		head_sprite.texture = ProceduralArt.create_texture("boss_mech_head", PackedStringArray([
+			"000000................",
+			"0bbcc000000000000000..",
+			"0bccccaaaaaaaaaaaaab0.",
+			"0bbcc01111111111111ab0",
+			"0000001feeeeffeeee1ab0",
+			".....01feeeeffeeee1ab0",
+			"0000001111111111111ab0",
+			"0bbcc0aaaaaaaaaaaaab0.",
+			"0bcccc00000000000000..",
+			"000000................",
+		]))
+		core_sprite.texture = ProceduralArt.create_texture("boss_core_mech", PackedStringArray([
+			"..000000..",
+			".0aaaaaa0.",
+			"0aa6666aa0",
+			"0a6ffff6a0",
+			"0a6ffff6a0",
+			"0a6ffff6a0",
+			"0aa6666aa0",
+			".0aaaaaa0.",
+			"..000000..",
 		]))
 	else:
 		# زعيم المرحلة 1: وحش الخردة الميكانيكي الأرضي

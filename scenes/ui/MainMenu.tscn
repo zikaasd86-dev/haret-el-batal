@@ -46,7 +46,13 @@ text = "PLAY STAGE 1"
 visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 9
-text = "CONTINUE STAGE 2 (NIGHT)"
+text = "CONTINUE STAGE 2 (ROOFTOPS)"
+
+[node name="Stage3Button" type="Button" parent="CenterBox/VBox"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "CONTINUE STAGE 3 (NIGHT)"
 
 [node name="SettingsGrid" type="GridContainer" parent="CenterBox/VBox"]
 layout_mode = 2

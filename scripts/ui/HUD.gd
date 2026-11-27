@@ -151,16 +151,24 @@ func _on_level_cleared() -> void:
 	pause_panel.visible = false
 	if GameState.current_stage == 1:
 		end_title.text = "STAGE 1 CLEARED! (LIVES: %d)" % GameState.lives
+		next_btn.text = "NEXT: STAGE 2"
+		next_btn.visible = true
+	elif GameState.current_stage == 2:
+		end_title.text = "STAGE 2 CLEARED! (LIVES: %d)" % GameState.lives
+		next_btn.text = "NEXT: STAGE 3 (NIGHT)"
 		next_btn.visible = true
 	else:
-		end_title.text = "VICTORY! ALL STAGES CLEARED!"
+		end_title.text = "VICTORY! ALL 3 STAGES CLEARED!"
 		next_btn.visible = false
 	end_panel.visible = true
 
 
 func _on_next_stage_pressed() -> void:
 	get_tree().paused = false
-	get_tree().change_scene_to_file("res://scenes/levels/Level2.tscn")
+	if GameState.current_stage == 1:
+		get_tree().change_scene_to_file("res://scenes/levels/Level2.tscn")
+	elif GameState.current_stage == 2:
+		get_tree().change_scene_to_file("res://scenes/levels/Level3.tscn")
 
 
 func _on_restart_pressed() -> void:

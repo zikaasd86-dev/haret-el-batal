@@ -3,6 +3,7 @@ extends Control
 
 @onready var play_btn: Button = $CenterBox/VBox/PlayButton
 @onready var stage2_btn: Button = $CenterBox/VBox/Stage2Button
+@onready var stage3_btn: Button = $CenterBox/VBox/Stage3Button
 @onready var hi_label: Label = $CenterBox/VBox/Subtitle
 @onready var music_btn: Button = $CenterBox/VBox/SettingsGrid/MusicButton
 @onready var sfx_btn: Button = $CenterBox/VBox/SettingsGrid/SfxButton
@@ -14,6 +15,7 @@ extends Control
 func _ready() -> void:
 	play_btn.pressed.connect(_on_play_pressed)
 	stage2_btn.pressed.connect(_on_stage2_pressed)
+	stage3_btn.pressed.connect(_on_stage3_pressed)
 	music_btn.pressed.connect(_on_music_pressed)
 	sfx_btn.pressed.connect(_on_sfx_pressed)
 	vib_btn.pressed.connect(_on_vib_pressed)
@@ -21,6 +23,7 @@ func _ready() -> void:
 	exit_btn.pressed.connect(_on_exit_pressed)
 
 	stage2_btn.visible = (GameState.unlocked_stage >= 2)
+	stage3_btn.visible = (GameState.unlocked_stage >= 3)
 	hi_label.text = "BEST SCORE: %05d  |  UNLOCKED: STAGE %d" % [GameState.high_score, GameState.unlocked_stage]
 	_refresh_buttons()
 	queue_redraw()
@@ -67,6 +70,12 @@ func _on_stage2_pressed() -> void:
 	GameState.start_new_campaign()
 	GameState.prepare_stage(2)
 	get_tree().change_scene_to_file("res://scenes/levels/Level2.tscn")
+
+
+func _on_stage3_pressed() -> void:
+	GameState.start_new_campaign()
+	GameState.prepare_stage(3)
+	get_tree().change_scene_to_file("res://scenes/levels/Level3.tscn")
 
 
 func _on_music_pressed() -> void:

@@ -12,6 +12,8 @@ enum EnemyType {
 	JUMPER,
 	DRONE,
 	HEAVY,
+	SNIPER,
+	KAMIKAZE,
 }
 
 const BULLET_SCENE := preload("res://scenes/player/Bullet.tscn")
@@ -37,6 +39,8 @@ var _hover_time: float = 0.0
 var _fire_timer: float = 0.65
 var _jump_timer: float = 0.8
 var _flash_timer: float = 0.0
+var _laser_aiming: bool = false
+var _laser_target: Vector2 = Vector2.ZERO
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var floor_check: RayCast2D = $FloorCheck
@@ -73,6 +77,18 @@ func _apply_type_defaults() -> void:
 			move_speed = 26.0
 			fire_interval = 1.7
 			score_value = 250
+		EnemyType.SNIPER:
+			hp = max(max_hp, 2)
+			move_speed = 0.0
+			fire_interval = 2.0
+			bullet_speed = 215.0
+			detect_range = 280.0
+			score_value = 250
+		EnemyType.KAMIKAZE:
+			hp = max(max_hp, 2)
+			move_speed = 82.0
+			detect_range = 210.0
+			score_value = 200
 
 
 func _physics_process(delta: float) -> void:
@@ -111,6 +127,10 @@ func _physics_process(delta: float) -> void:
 			_ai_jumper(delta, player, dist_to_player, dir_to_player)
 		EnemyType.HEAVY:
 			_ai_heavy(delta, player, dist_to_player, dir_to_player)
+		EnemyType.SNIPER:
+			_ai_sniper(delta, player, dist_to_player, dir_to_player)
+		EnemyType.KAMIKAZE:
+			_ai_kamikaze(delta, player, dist_to_player, dir_to_player)
 
 	sprite.flip_h = (facing < 0)
 	_update_floor_check()
@@ -188,6 +208,45 @@ func _ai_heavy(delta: float, player: Node2D, dist: float, dir_to_player: Vector2
 			_fire_timer = fire_interval
 	else:
 		_ai_walker()
+
+
+## سلوك القناص الليلي (يرصد البطل بشعاع ليزر أحمر دقيق ثم يطلق رصاصة فائقة السرعة)
+func _ai_sniper(delta: float, player: Node2D, dist: float, dir_to_player: Vector2) -> void:
+	velocity.x = 0.0
+	if not player or dist > detect_range:
+		_laser_aiming = false
+		queue_redraw()
+		return
+
+	facing = 1 if player.global_position.x >= global_position.x else -1
+	_laser_aiming = true
+	_laser_target = to_local(player.global_position + Vector2(0, -10))
+	_fire_timer -= delta
+	if _fire_timer <= 0.0:
+		_shoot_at(dir_to_player)
+		_fire_timer = fire_interval
+		_laser_aiming = false
+	queue_redraw()
+
+
+## سلوك الروبوت الانتحاري (يندفع بسرعة فائقة نحو البطل ويتفجر عند ملامسته)
+func _ai_kamikaze(delta: float, player: Node2D, dist: float, _dir_to_player: Vector2) -> void:
+	if player and dist <= detect_range:
+		facing = 1 if player.global_position.x >= global_position.x else -1
+		velocity.x = facing * move_speed
+		if dist <= 18.0:
+			take_damage(hp)
+	else:
+		_ai_walker()
+
+
+func _draw() -> void:
+	if enemy_type == EnemyType.SNIPER and _laser_aiming:
+		var muzzle_local := Vector2(facing * 12.0, -16.0)
+		var alpha := 0.85 if _fire_timer < 0.45 else 0.35
+		var col := Color(1.0, 0.1, 0.1, alpha)
+		draw_line(muzzle_local, _laser_target, col, 1.2)
+		draw_circle(_laser_target, 2.0, col)
 
 
 func _shoot_at(dir: Vector2) -> void:
@@ -338,3 +397,42 @@ func _build_sprite() -> void:
 				".000000..000000.",
 			]))
 			sprite.scale = Vector2(1.5, 1.65)
+		EnemyType.SNIPER:
+			sprite.texture = ProceduralArt.create_texture("enemy_sniper_lg", PackedStringArray([
+				"....0000000.....",
+				"...0aaaaaaa0....",
+				"..0aabbbbbbaa0..",
+				"..0abffffffe0000",
+				"..0abbbbbbba0...",
+				"...0aaaaaaaa0...",
+				"..000aaaaaa00...",
+				".0aa0aabbbba0cc0",
+				".0aa0abbbbba0000",
+				".0aa0aaaaaaa0...",
+				"..000aaaaaa00...",
+				"...0bbbbbbbb0...",
+				"...0bb0000bb0...",
+				"...0bb0..0bb0...",
+				"...0aa0..0aa0...",
+				"...0aa0..0aa0...",
+				"..01110..01110..",
+				"..00000..00000..",
+			]))
+			sprite.scale = Vector2(1.25, 1.3)
+		EnemyType.KAMIKAZE:
+			sprite.texture = ProceduralArt.create_texture("enemy_kamikaze_lg", PackedStringArray([
+				"......0000......",
+				".....0dddd0.....",
+				"...00deeeed00...",
+				"..0ddeffffed0...",
+				".0dddeeeeeed0...",
+				"0dd00000000dd0..",
+				"0db0e0000e0bd0..",
+				"0db0eeeeee0bd0..",
+				".000bbbbbb000...",
+				"..0bbbbbbbb0...",
+				".0c0bb..bb0c0...",
+				"0cc0bb..bb0cc0..",
+				"000000..000000..",
+			]))
+			sprite.scale = Vector2(1.3, 1.3)

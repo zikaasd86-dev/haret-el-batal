@@ -156,7 +156,7 @@ func trigger_level_cleared() -> void:
 	if is_level_cleared:
 		return
 	is_level_cleared = true
-	if current_stage >= unlocked_stage and current_stage < 2:
+	if current_stage >= unlocked_stage and current_stage < 3:
 		unlocked_stage = current_stage + 1
 		save_settings()
 	level_cleared.emit()

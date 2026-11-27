@@ -84,11 +84,23 @@ func _on_screen_shake(intensity: float, duration: float) -> void:
 	_shake_timer = maxf(_shake_timer, duration)
 
 
-## رسم خلفية 16-bit غنية بالألوان والتباين (سماء متدرجة + أفق قاهري + عمارات مرتفعة + فوانيس)
+## رسم خلفية 16-bit غنية بالألوان والتباين (سماء متدرجة + أفق قاهري أو صناعي + عمارات/هناجر + إضاءة)
 func _draw() -> void:
 	var level_w := float(LEVEL_TILES_W * TILE_SIZE)
 
-	if night_theme:
+	if stage_number == 3:
+		# ليل صناعي واقعي للمرحلة 3: سماء داكنة ورذاذ ليلي هادئ وضباب مستودعات
+		var sky_top := Color("#090d16")
+		var sky_mid := Color("#111824")
+		var sky_low := Color("#1a2230")
+		draw_rect(Rect2(0, 0, level_w, 52), sky_top)
+		draw_rect(Rect2(0, 50, level_w, 58), sky_mid)
+		draw_rect(Rect2(0, 106, level_w, 74), sky_low)
+		# رذاذ مطر وضباب ليلي يعطي عمقاً وواقعية
+		for rx in range(0, int(level_w), 24):
+			var ry := float(12 + (rx * 17) % 130)
+			draw_line(Vector2(rx, ry), Vector2(rx - 3, ry + 7), Color(0.7, 0.8, 1.0, 0.22), 1.0)
+	elif night_theme:
 		# سماء ليلية ساحرة للمرحلة 2
 		draw_rect(Rect2(0, 0, level_w, 58), Palette.SKY_NIGHT_TOP)
 		draw_rect(Rect2(0, 56, level_w, 56), Palette.SKY_NIGHT_MID)
@@ -106,24 +118,42 @@ func _draw() -> void:
 		draw_rect(Rect2(0, 90, level_w, 44), Palette.SKY_DUSK_LOW)
 		draw_rect(Rect2(0, 132, level_w, 48), Palette.C_DARK_BROWN)
 
-	# طبقة الأفق البعيد (قباب ومآذن قاهرية داكنة لإعطاء عمق)
-	var sx := 24.0
-	var s_idx := 0
-	while sx < level_w:
-		var sil_col := Palette.SKY_NIGHT_TOP.lightened(0.08) if night_theme else Palette.SKY_DUSK_MID.darkened(0.42)
-		if s_idx % 2 == 0:
-			# مئذنة رشيقة في الأفق
-			draw_rect(Rect2(sx, 26, 8, 134), sil_col)
-			draw_rect(Rect2(sx - 2, 54, 12, 4), sil_col)
-			draw_circle(Vector2(sx + 4, 24), 4.0, sil_col)
-		else:
-			# قبة بعيدة
-			draw_circle(Vector2(sx + 16, 86), 16.0, sil_col)
-			draw_rect(Rect2(sx, 86, 32, 74), sil_col)
-		sx += 130.0
-		s_idx += 1
+	if stage_number == 3:
+		# أفق صناعي بعيد للمرحلة 3: مداخن مصانع شاهقة مع وميض أضواء أمان حمراء
+		var fx := 20.0
+		var f_idx := 0
+		while fx < level_w:
+			var ind_col := Color("#0d131f")
+			if f_idx % 2 == 0:
+				draw_rect(Rect2(fx, 20, 10, 140), ind_col)
+				draw_rect(Rect2(fx - 2, 20, 14, 3), ind_col)
+				draw_circle(Vector2(fx + 5, 18), 2.5, Color(1.0, 0.2, 0.2, 0.85))
+				draw_circle(Vector2(fx + 5, 18), 1.0, Color.WHITE)
+			else:
+				draw_rect(Rect2(fx, 64, 38, 96), ind_col)
+				draw_rect(Rect2(fx + 6, 44, 26, 20), ind_col)
+				draw_circle(Vector2(fx + 19, 44), 13.0, ind_col)
+			fx += 110.0
+			f_idx += 1
+	else:
+		# طبقة الأفق البعيد (قباب ومآذن قاهرية داكنة لإعطاء عمق للمرحلة 1 و 2)
+		var sx := 24.0
+		var s_idx := 0
+		while sx < level_w:
+			var sil_col := Palette.SKY_NIGHT_TOP.lightened(0.08) if night_theme else Palette.SKY_DUSK_MID.darkened(0.42)
+			if s_idx % 2 == 0:
+				# مئذنة رشيقة في الأفق
+				draw_rect(Rect2(sx, 26, 8, 134), sil_col)
+				draw_rect(Rect2(sx - 2, 54, 12, 4), sil_col)
+				draw_circle(Vector2(sx + 4, 24), 4.0, sil_col)
+			else:
+				# قبة بعيدة
+				draw_circle(Vector2(sx + 16, 86), 16.0, sil_col)
+				draw_rect(Rect2(sx, 86, 32, 74), sil_col)
+			sx += 130.0
+			s_idx += 1
 
-	# عمارات الحارة المرتفعة (بألوان أغمق قليلاً لتبرز الشخصيات والطلقات بوضوح عالٍ!)
+	# عمارات الحارة أو هناجر المستودعات المرتفعة
 	var b_x := 4.0
 	var idx := 0
 	while b_x < level_w - 30.0:
@@ -131,7 +161,9 @@ func _draw() -> void:
 		var bh := 118.0 + float((idx * 29) % 38)
 		var by := 160.0 - bh
 		var wall_col: Color
-		if night_theme:
+		if stage_number == 3:
+			wall_col = Color("#141b24") if idx % 2 == 0 else Color("#1b2330")
+		elif night_theme:
 			wall_col = Palette.SKY_NIGHT_MID.darkened(0.22) if idx % 2 == 0 else Palette.C_SLATE.darkened(0.55)
 		else:
 			var base_c := Palette.C_SAND if (idx % 3 == 0) else (Palette.C_BRICK if (idx % 3 == 1) else Palette.C_WOOD)
@@ -139,23 +171,35 @@ func _draw() -> void:
 
 		draw_rect(Rect2(b_x, by, bw, bh), wall_col)
 		draw_rect(Rect2(b_x - 1, by, bw + 2, 5), Palette.C_BLACK)
-		draw_rect(Rect2(b_x, by + 5, bw, 2), Palette.C_SAND.darkened(0.3))
+		draw_rect(Rect2(b_x, by + 5, bw, 2), Color("#2a3545") if stage_number == 3 else Palette.C_SAND.darkened(0.3))
 
 		var wy := by + 13.0
 		while wy < 142.0:
 			var wx := b_x + 7.0
 			while wx < b_x + bw - 12.0:
-				var lit := ((idx + int(wx + wy)) % 3 != 0)
-				draw_rect(Rect2(wx, wy, 8, 12), Palette.C_DARK_GREEN.darkened(0.2))
-				draw_rect(Rect2(wx + 1, wy + 1, 6, 9), Palette.C_GOLD.darkened(0.1) if lit else Palette.C_BLACK)
+				if stage_number == 3:
+					draw_rect(Rect2(wx, wy, 8, 8), Palette.C_BLACK)
+					if (idx + int(wx + wy)) % 3 == 0:
+						draw_rect(Rect2(wx + 2, wy + 2, 4, 4), Color(0.95, 0.7, 0.25, 0.75))
+				else:
+					var lit := ((idx + int(wx + wy)) % 3 != 0)
+					draw_rect(Rect2(wx, wy, 8, 12), Palette.C_DARK_GREEN.darkened(0.2))
+					draw_rect(Rect2(wx + 1, wy + 1, 6, 9), Palette.C_GOLD.darkened(0.1) if lit else Palette.C_BLACK)
 				wx += 15.0
 			wy += 22.0
 
 		if idx % 2 == 0:
 			var lx := b_x + bw + 3.0
-			draw_line(Vector2(b_x + bw, by + 20), Vector2(b_x + bw + 14, by + 26), Palette.C_BLACK, 1.0)
-			draw_rect(Rect2(lx, by + 24, 5, 7), Palette.C_GOLD)
-			draw_rect(Rect2(lx + 1, by + 25, 3, 5), Palette.C_WHITE)
+			draw_line(Vector2(b_x + bw, by + 20), Vector2(b_x + bw + 14, by + 26), Palette.C_BLACK, 1.2)
+			draw_rect(Rect2(lx, by + 24, 6, 6), Palette.C_GOLD if stage_number != 3 else Color("#ffe899"))
+			draw_rect(Rect2(lx + 1, by + 25, 4, 4), Palette.C_WHITE)
+			if stage_number == 3:
+				var cone := PackedVector2Array([
+					Vector2(lx + 3, by + 30),
+					Vector2(lx - 20, 160.0),
+					Vector2(lx + 26, 160.0),
+				])
+				draw_colored_polygon(cone, Color(1.0, 0.92, 0.6, 0.045))
 
 		b_x += bw + 8.0
 		idx += 1
@@ -379,42 +423,77 @@ func _build_physics_colliders() -> void:
 		plat_body.add_child(cs)
 
 
-## تشكيلة أعداء متنوعة من 5 أنواع: 0=يمشي، 1=يطلق نار، 2=يقفز، 3=درون طائر، 4=مدرّع ثقيل
+## تشكيلة أعداء متنوعة من 7 أنواع:
+## 0=يمشي، 1=يطلق نار، 2=يقفز، 3=درون طائر، 4=مدرّع ثقيل، 5=قناص ليلي، 6=انتحاري سريع
 func _spawn_enemies() -> void:
-	var spawns := [
-		[0, 410.0, 94.0],
-		[2, 470.0, 158.0],
-		[3, 560.0, 56.0],   # درون طائر
-		[1, 660.0, 94.0],
-		[4, 790.0, 158.0],  # مدرّع ثقيل
-		[0, 900.0, 110.0],
-		[3, 1040.0, 52.0],  # درون طائر
-		[2, 1130.0, 158.0],
-		[1, 1260.0, 110.0],
-		[4, 1420.0, 158.0], # مدرّع ثقيل
-		[3, 1540.0, 58.0],  # درون طائر
-		[0, 1710.0, 94.0],
-		[2, 1820.0, 158.0],
-		[1, 1960.0, 110.0],
-		[3, 2100.0, 54.0],  # درون طائر
-		[4, 2260.0, 158.0], # مدرّع ثقيل
-		[1, 2410.0, 78.0],
-		[0, 2600.0, 110.0],
-		[3, 2750.0, 52.0],  # درون طائر
-		[2, 2940.0, 158.0],
-		[4, 3120.0, 158.0], # مدرّع ثقيل
-		[1, 3300.0, 78.0],
-		[3, 3480.0, 54.0],  # درون طائر
-		[2, 3620.0, 158.0],
-		[4, 3820.0, 158.0], # مدرّع ثقيل
-		[1, 3940.0, 110.0],
-		[3, 4020.0, 58.0],  # درون طائر قبل الساحة
-	]
+	var spawns: Array
+	if stage_number == 3:
+		# تشكيلة خاصة بالمرحلة 3: قناصة على الحواف، روبوتات انتحارية سريعة، مدرعات ودرونات
+		spawns = [
+			[5, 420.0, 94.0],   # SNIPER
+			[6, 490.0, 158.0],  # KAMIKAZE
+			[3, 580.0, 52.0],   # DRONE
+			[4, 760.0, 158.0],  # HEAVY
+			[5, 920.0, 78.0],   # SNIPER
+			[6, 1020.0, 158.0], # KAMIKAZE
+			[3, 1140.0, 54.0],  # DRONE
+			[2, 1280.0, 158.0], # JUMPER
+			[5, 1420.0, 78.0],  # SNIPER
+			[4, 1560.0, 158.0], # HEAVY
+			[6, 1720.0, 158.0], # KAMIKAZE
+			[3, 1860.0, 52.0],  # DRONE
+			[1, 2020.0, 110.0], # SHOOTER
+			[5, 2180.0, 78.0],  # SNIPER
+			[4, 2340.0, 158.0], # HEAVY
+			[6, 2520.0, 158.0], # KAMIKAZE
+			[3, 2680.0, 54.0],  # DRONE
+			[5, 2850.0, 78.0],  # SNIPER
+			[2, 3020.0, 158.0], # JUMPER
+			[4, 3200.0, 158.0], # HEAVY
+			[6, 3380.0, 158.0], # KAMIKAZE
+			[5, 3540.0, 78.0],  # SNIPER
+			[3, 3700.0, 52.0],  # DRONE
+			[4, 3860.0, 158.0], # HEAVY
+			[6, 3980.0, 158.0], # KAMIKAZE
+			[5, 4060.0, 78.0],  # SNIPER حارس الساحة
+		]
+	else:
+		spawns = [
+			[0, 410.0, 94.0],
+			[2, 470.0, 158.0],
+			[3, 560.0, 56.0],
+			[1, 660.0, 94.0],
+			[4, 790.0, 158.0],
+			[0, 900.0, 110.0],
+			[3, 1040.0, 52.0],
+			[2, 1130.0, 158.0],
+			[1, 1260.0, 110.0],
+			[4, 1420.0, 158.0],
+			[3, 1540.0, 58.0],
+			[0, 1710.0, 94.0],
+			[2, 1820.0, 158.0],
+			[1, 1960.0, 110.0],
+			[3, 2100.0, 54.0],
+			[4, 2260.0, 158.0],
+			[1, 2410.0, 78.0],
+			[0, 2600.0, 110.0],
+			[3, 2750.0, 52.0],
+			[2, 2940.0, 158.0],
+			[4, 3120.0, 158.0],
+			[1, 3300.0, 78.0],
+			[3, 3480.0, 54.0],
+			[2, 3620.0, 158.0],
+			[4, 3820.0, 158.0],
+			[1, 3940.0, 110.0],
+			[3, 4020.0, 58.0],
+		]
 
 	for entry in spawns:
 		var enemy := ENEMY_SCENE.instantiate()
 		enemy.enemy_type = entry[0]
-		if stage_number >= 2:
+		if stage_number == 3:
+			enemy.max_hp = 3 if enemy.enemy_type != 4 else 5
+		elif stage_number >= 2:
 			enemy.max_hp = 3
 		enemy.position = Vector2(entry[1], entry[2])
 		enemies_root.add_child(enemy)
