@@ -15,6 +15,7 @@ var _transitioned: bool = false
 
 func _ready() -> void:
 	logo_tex.texture = load("res://assets/icons/icon.png")
+	UITheme.style_progress_bar(progress_bar, Palette.C_GOLD)
 	progress_bar.value = 0.0
 	modulate.a = 0.0
 	var tween := create_tween()

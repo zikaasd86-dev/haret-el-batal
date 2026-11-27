@@ -60,6 +60,21 @@ func _ready() -> void:
 	_on_score_changed(GameState.score)
 	_refresh_hp_text()
 	_refresh_pause_buttons()
+	_apply_polished_theme()
+
+
+func _apply_polished_theme() -> void:
+	UITheme.style_panel(pause_panel)
+	UITheme.style_panel(end_panel)
+	UITheme.style_progress_bar(boss_bar, Palette.C_RED_CORE)
+	UITheme.style_button(pause_btn, Color(0.12, 0.09, 0.16, 0.78), Palette.C_GOLD)
+	UITheme.style_button(resume_btn, Palette.C_GREEN.darkened(0.15), Palette.C_GOLD)
+	UITheme.style_button(next_btn, Palette.C_GREEN.darkened(0.15), Palette.C_GOLD)
+	UITheme.style_button(restart_btn, Palette.C_WOOD, Palette.C_GOLD)
+	for b in [auto_btn, music_btn, menu_btn, end_menu_btn]:
+		UITheme.style_button(b, Color(0.14, 0.10, 0.18, 0.92), Palette.C_SAND)
+	UITheme.style_button(exit_btn, Palette.C_DARK_RED, Palette.C_RED_CORE)
+	UITheme.style_button(end_exit_btn, Palette.C_DARK_RED, Palette.C_RED_CORE)
 
 
 func _process(delta: float) -> void:

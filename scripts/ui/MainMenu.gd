@@ -24,7 +24,13 @@ func _ready() -> void:
 
 	stage2_btn.visible = (GameState.unlocked_stage >= 2)
 	stage3_btn.visible = (GameState.unlocked_stage >= 3)
-	hi_label.text = "BEST SCORE: %05d  |  UNLOCKED: STAGE %d" % [GameState.high_score, GameState.unlocked_stage]
+	hi_label.text = "EGYPTIAN ALLEY ACTION  •  BEST: %05d" % GameState.high_score
+	UITheme.style_button(play_btn, Palette.C_GREEN.darkened(0.15), Palette.C_GOLD)
+	UITheme.style_button(stage2_btn, Palette.SKY_NIGHT_MID, Palette.C_CREAM)
+	UITheme.style_button(stage3_btn, Palette.C_WOOD, Palette.C_GOLD)
+	UITheme.style_button(exit_btn, Palette.C_DARK_RED, Palette.C_RED_CORE)
+	for b in [music_btn, sfx_btn, vib_btn, auto_btn]:
+		UITheme.style_button(b, Color(0.14, 0.10, 0.18, 0.92), Palette.C_SAND)
 	_refresh_buttons()
 	queue_redraw()
 
