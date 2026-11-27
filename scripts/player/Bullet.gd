@@ -22,7 +22,7 @@ func _ready() -> void:
 	area_entered.connect(_on_area_entered)
 
 
-func setup(pos: Vector2, dir: Vector2, enemy_bullet: bool = false, custom_speed: float = -1.0, custom_damage: int = 1, style: int = 0, w_sign: float = 1.0) -> void:
+func setup(pos: Vector2, dir: Vector2, enemy_bullet: bool = false, custom_speed: float = -1.0, custom_damage: int = 1, style: int = 0, w_sign: float = 1.0, custom_lifetime: float = -1.0) -> void:
 	global_position = pos
 	direction = dir.normalized() if dir.length_squared() > 0.0 else Vector2.RIGHT
 	is_enemy_bullet = enemy_bullet
@@ -31,6 +31,8 @@ func setup(pos: Vector2, dir: Vector2, enemy_bullet: bool = false, custom_speed:
 	wave_sign = w_sign
 	if custom_speed > 0.0:
 		speed = custom_speed
+	if custom_lifetime > 0.0:
+		lifetime = custom_lifetime
 
 
 func _configure_collision() -> void:
