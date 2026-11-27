@@ -96,13 +96,13 @@ func _physics_process(delta: float) -> void:
 		if _core_flash <= 0.0:
 			core_sprite.modulate = Color.WHITE
 
-	# قذف برميل متفجر (أو برميلين في المرحلة 2 و 3) باتجاه منطقة البطل!
+	# قذف برميل متفجر (واحد في المرحلة 1 لتكون متوازنة، واثنان في المرحلة 2 و3)
 	_barrel_timer -= delta
 	if _barrel_timer <= 0.0:
 		_throw_aimed_barrel(player, 0.0)
-		if current_phase >= 2:
+		if boss_variant >= 2 and current_phase >= 2:
 			_throw_aimed_barrel(player, randf_range(-55.0, 55.0))
-		_barrel_timer = barrel_interval
+		_barrel_timer = 5.0 if boss_variant == 1 else barrel_interval
 
 	_attack_timer -= delta
 	if _attack_timer <= 0.0:
@@ -177,33 +177,32 @@ func _perform_phase_attack(player: Node2D) -> void:
 				_attack_timer = 0.68
 		return
 
-	# أنماط هجوم زعيم المرحلة 1 (طلقات طويلة المدى تعبر الشاشة كلها لمنع الاختباء بعيداً!)
+	# أنماط هجوم زعيم المرحلة 1 (متوازنة وممتعة كأول زعيم مع الحفاظ على التحدي!)
 	match current_phase:
 		1:
 			var origin := head_area.global_position + Vector2(-14, 4) if (_attack_step % 2 == 0) else lower_cannon.global_position
 			var dir := (target_pos - origin).normalized()
-			_spawn_bullet(origin, dir, 160.0)
-			_spawn_bullet(origin, dir.rotated(deg_to_rad(10.0)), 155.0)
-			_attack_timer = 1.10
+			_spawn_bullet(origin, dir, 128.0)
+			_attack_timer = 1.45
 		2:
 			var origin := head_area.global_position + Vector2(-14, 4)
 			var base_dir := (target_pos - origin).normalized()
-			for deg in [-18.0, 0.0, 18.0]:
-				_spawn_bullet(origin, base_dir.rotated(deg_to_rad(deg)), 172.0)
-			_attack_timer = 0.95
+			for deg in [-16.0, 0.0, 16.0]:
+				_spawn_bullet(origin, base_dir.rotated(deg_to_rad(deg)), 138.0)
+			_attack_timer = 1.25
 		3:
 			if _attack_step % 2 == 0:
 				var origin := lower_cannon.global_position
 				var base_dir := (target_pos - origin).normalized()
-				for deg in [-30.0, -15.0, 0.0, 15.0, 30.0]:
-					_spawn_bullet(origin, base_dir.rotated(deg_to_rad(deg)), 182.0)
-				_attack_timer = 0.85
+				for deg in [-24.0, 0.0, 24.0]:
+					_spawn_bullet(origin, base_dir.rotated(deg_to_rad(deg)), 146.0)
+				_attack_timer = 1.10
 			else:
 				var origin := head_area.global_position + Vector2(-14, 4)
 				var dir := (target_pos - origin).normalized()
-				_spawn_bullet(origin, dir, 190.0)
-				_spawn_bullet(lower_cannon.global_position, dir, 190.0)
-				_attack_timer = 0.72
+				_spawn_bullet(origin, dir, 152.0)
+				_spawn_bullet(lower_cannon.global_position, dir, 152.0)
+				_attack_timer = 1.00
 
 
 func _spawn_bullet(origin: Vector2, dir: Vector2, spd: float) -> void:

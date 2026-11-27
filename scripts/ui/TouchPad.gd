@@ -1,19 +1,19 @@
 extends Control
-## لوحة لمس متعددة الأصابع: جويستك شفاف أقصى اليسار + أزرار دائرية أنيقة أقصى اليمين
+## لوحة لمس مدمجة وأنيقة (تأخذ أقل مساحة ممكنة مع استجابة لمس دقيقة متعددة الأصابع)
 
-const JOY_OUTER_R := 22.0
-const JOY_KNOB_R := 9.0
+const JOY_OUTER_R := 18.0
+const JOY_KNOB_R := 7.5
 const JOY_DEADZONE := 0.22
-const BTN_R := 15.5
-const WPN_R := 10.0
+const BTN_R := 12.0
+const WPN_R := 8.0
 
-var _joy_center := Vector2(36.0, 144.0)
+var _joy_center := Vector2(26.0, 154.0)
 var _joy_knob := Vector2.ZERO
 var _joy_touch_id: int = -1
 
-var _fire_center := Vector2(268.0, 152.0)
-var _jump_center := Vector2(300.0, 134.0)
-var _wpn_center := Vector2(298.0, 102.0)
+var _fire_center := Vector2(276.0, 158.0)
+var _jump_center := Vector2(302.0, 144.0)
+var _wpn_center := Vector2(302.0, 118.0)
 
 var _fire_touch_id: int = -1
 var _jump_touch_id: int = -1
@@ -28,12 +28,10 @@ func _ready() -> void:
 
 func _update_layout() -> void:
 	var vp := get_viewport().get_visible_rect().size
-	# الجويستك في الزاوية السفلى اليسرى بعيداً عن البطل
-	_joy_center = Vector2(34.0, vp.y - 32.0)
-	# الأزرار الدائرية في الزاوية السفلى اليمنى بزاوية مريحة للإبهام
-	_jump_center = Vector2(vp.x - 24.0, vp.y - 38.0)
-	_fire_center = Vector2(vp.x - 56.0, vp.y - 24.0)
-	_wpn_center = Vector2(vp.x - 24.0, vp.y - 72.0)
+	_joy_center = Vector2(26.0, vp.y - 24.0)
+	_jump_center = Vector2(vp.x - 18.0, vp.y - 30.0)
+	_fire_center = Vector2(vp.x - 44.0, vp.y - 18.0)
+	_wpn_center = Vector2(vp.x - 18.0, vp.y - 54.0)
 	queue_redraw()
 
 
@@ -46,21 +44,20 @@ func _input(event: InputEvent) -> void:
 		var pos: Vector2 = event.position
 		var idx: int = event.index
 		if event.pressed:
-			# فحص الأزرار الدائرية أولاً
-			if _fire_touch_id == -1 and pos.distance_to(_fire_center) <= BTN_R + 7.0:
+			# منطقة لمس مريحة (+6px) رغم صغر حجم الزر البصري
+			if _fire_touch_id == -1 and pos.distance_to(_fire_center) <= BTN_R + 6.0:
 				_fire_touch_id = idx
 				Input.action_press("fire")
 				queue_redraw()
-			elif _jump_touch_id == -1 and pos.distance_to(_jump_center) <= BTN_R + 7.0:
+			elif _jump_touch_id == -1 and pos.distance_to(_jump_center) <= BTN_R + 6.0:
 				_jump_touch_id = idx
 				Input.action_press("jump")
 				queue_redraw()
-			elif _wpn_touch_id == -1 and pos.distance_to(_wpn_center) <= WPN_R + 6.0:
+			elif _wpn_touch_id == -1 and pos.distance_to(_wpn_center) <= WPN_R + 5.0:
 				_wpn_touch_id = idx
 				Input.action_press("switch_weapon")
 				queue_redraw()
-			# النصف الأيسر من الشاشة (أسفل) يفعّل الجويستك بسلاسة
-			elif _joy_touch_id == -1 and pos.x < get_viewport().get_visible_rect().size.x * 0.45 and pos.y > 40.0:
+			elif _joy_touch_id == -1 and pos.x < get_viewport().get_visible_rect().size.x * 0.42 and pos.y > 44.0:
 				_joy_touch_id = idx
 				_update_joystick(pos)
 		else:
@@ -124,49 +121,35 @@ func _release_all() -> void:
 
 
 func _draw() -> void:
-	# 1. الجويستك الافتراضي الشفاف (حلقة خارجية ناعمة + كرة داخلية)
-	draw_circle(_joy_center, JOY_OUTER_R, Color(0.10, 0.08, 0.06, 0.24))
-	draw_arc(_joy_center, JOY_OUTER_R, 0.0, TAU, 32, Color(1.0, 0.96, 0.90, 0.42), 1.4, true)
-	# نقاط خفيفة للاتجاهات الأربعة داخل الجويستك
-	for d in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
-		draw_circle(_joy_center + d * (JOY_OUTER_R - 5.0), 1.2, Color(1.0, 0.96, 0.90, 0.35))
-
+	# 1. جويستك شفاف صغير وأنيق
+	draw_circle(_joy_center, JOY_OUTER_R, Color(0.08, 0.06, 0.10, 0.16))
+	draw_arc(_joy_center, JOY_OUTER_R, 0.0, TAU, 32, Color(1.0, 0.96, 0.90, 0.34), 1.0, true)
 	var knob_pos := _joy_center + _joy_knob
-	var knob_col := Color(0.96, 0.72, 0.18, 0.72) if _joy_touch_id != -1 else Color(1.0, 0.96, 0.90, 0.48)
+	var knob_col := Color(1.0, 0.76, 0.22, 0.65) if _joy_touch_id != -1 else Color(1.0, 0.96, 0.90, 0.38)
 	draw_circle(knob_pos, JOY_KNOB_R, knob_col)
-	draw_arc(knob_pos, JOY_KNOB_R, 0.0, TAU, 24, Color(1.0, 1.0, 1.0, 0.75), 1.0, true)
+	draw_arc(knob_pos, JOY_KNOB_R, 0.0, TAU, 20, Color(1.0, 1.0, 1.0, 0.65), 1.0, true)
 
-	# 2. زر إطلاق النار الدائري الشفاف (مع رمز تصويب Crosshair)
-	var fire_fill := Color(0.92, 0.22, 0.22, 0.65) if _fire_touch_id != -1 else Color(0.88, 0.19, 0.19, 0.34)
+	# 2. زر إطلاق النار (دائرة زجاجية مدمجة وأنيقة برمز رصاصة/هدف)
+	var fire_fill := Color(0.95, 0.25, 0.22, 0.58) if _fire_touch_id != -1 else Color(0.88, 0.20, 0.18, 0.22)
 	draw_circle(_fire_center, BTN_R, fire_fill)
-	draw_arc(_fire_center, BTN_R, 0.0, TAU, 32, Color(1.0, 0.85, 0.80, 0.72), 1.5, true)
-	# رمز تصويب داخل زر النار
-	draw_arc(_fire_center, 5.5, 0.0, TAU, 20, Color(1, 1, 1, 0.9), 1.2, true)
-	draw_line(_fire_center + Vector2(-8, 0), _fire_center + Vector2(-3, 0), Color(1, 1, 1, 0.9), 1.2)
-	draw_line(_fire_center + Vector2(3, 0), _fire_center + Vector2(8, 0), Color(1, 1, 1, 0.9), 1.2)
-	draw_line(_fire_center + Vector2(0, -8), _fire_center + Vector2(0, -3), Color(1, 1, 1, 0.9), 1.2)
-	draw_line(_fire_center + Vector2(0, 3), _fire_center + Vector2(0, 8), Color(1, 1, 1, 0.9), 1.2)
+	draw_arc(_fire_center, BTN_R, 0.0, TAU, 28, Color(1.0, 0.72, 0.65, 0.62), 1.1, true)
+	draw_circle(_fire_center, 3.2, Color(1.0, 0.95, 0.85, 0.88))
+	draw_arc(_fire_center, 6.2, 0.0, TAU, 20, Color(1.0, 0.95, 0.85, 0.65), 1.0, true)
 
-	# 3. زر القفز الدائري الشفاف (مع سهم صاعد أنيق)
-	var jump_fill := Color(0.28, 0.65, 0.42, 0.68) if _jump_touch_id != -1 else Color(0.22, 0.48, 0.32, 0.36)
+	# 3. زر القفز (دائرة زجاجية مدمجة بسهم نظيف)
+	var jump_fill := Color(0.24, 0.70, 0.44, 0.58) if _jump_touch_id != -1 else Color(0.18, 0.52, 0.34, 0.22)
 	draw_circle(_jump_center, BTN_R, jump_fill)
-	draw_arc(_jump_center, BTN_R, 0.0, TAU, 32, Color(0.85, 1.0, 0.88, 0.72), 1.5, true)
-	# سهم قفز مزدوج أنيق داخل الزر
+	draw_arc(_jump_center, BTN_R, 0.0, TAU, 28, Color(0.75, 1.0, 0.82, 0.62), 1.1, true)
 	draw_polyline(PackedVector2Array([
-		_jump_center + Vector2(-5.5, 1.0),
-		_jump_center + Vector2(0.0, -5.0),
-		_jump_center + Vector2(5.5, 1.0)
-	]), Color(1, 1, 1, 0.92), 1.8, true)
-	draw_polyline(PackedVector2Array([
-		_jump_center + Vector2(-4.0, 5.5),
-		_jump_center + Vector2(0.0, 1.0),
-		_jump_center + Vector2(4.0, 5.5)
-	]), Color(1, 1, 1, 0.65), 1.4, true)
+		_jump_center + Vector2(-4.2, 1.5),
+		_jump_center + Vector2(0.0, -3.8),
+		_jump_center + Vector2(4.2, 1.5)
+	]), Color(1, 1, 1, 0.88), 1.5, true)
 
-	# 4. زر تبديل السلاح الصغير (دائرة ذهبية شفافة)
-	var wpn_fill := Color(0.96, 0.72, 0.18, 0.75) if _wpn_touch_id != -1 else Color(0.80, 0.55, 0.15, 0.34)
+	# 4. زر تبديل السلاح الصغير (دائرة ذهبية رقيقة)
+	var wpn_fill := Color(1.0, 0.74, 0.20, 0.62) if _wpn_touch_id != -1 else Color(0.85, 0.60, 0.16, 0.22)
 	draw_circle(_wpn_center, WPN_R, wpn_fill)
-	draw_arc(_wpn_center, WPN_R, 0.0, TAU, 24, Color(1.0, 0.92, 0.70, 0.75), 1.2, true)
-	draw_line(_wpn_center + Vector2(-4.5, 0), _wpn_center + Vector2(4.5, 0), Color(1, 1, 1, 0.9), 2.0)
-	draw_line(_wpn_center + Vector2(1.5, -3), _wpn_center + Vector2(4.5, 0), Color(1, 1, 1, 0.9), 1.3)
-	draw_line(_wpn_center + Vector2(1.5, 3), _wpn_center + Vector2(4.5, 0), Color(1, 1, 1, 0.9), 1.3)
+	draw_arc(_wpn_center, WPN_R, 0.0, TAU, 20, Color(1.0, 0.90, 0.62, 0.65), 1.0, true)
+	draw_line(_wpn_center + Vector2(-3.2, 0), _wpn_center + Vector2(3.2, 0), Color(1, 1, 1, 0.88), 1.5)
+	draw_line(_wpn_center + Vector2(0.8, -2.2), _wpn_center + Vector2(3.2, 0), Color(1, 1, 1, 0.88), 1.1)
+	draw_line(_wpn_center + Vector2(0.8, 2.2), _wpn_center + Vector2(3.2, 0), Color(1, 1, 1, 0.88), 1.1)

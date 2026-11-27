@@ -45,15 +45,16 @@ func _on_music_changed(enabled: bool) -> void:
 
 
 func _setup_players() -> void:
-	# 6 قنوات SFX متوازية لعدم تقطع الأصوات أثناء الإطلاق السريع
+	# 6 قنوات SFX بصوت واضح وقوي فوق الموسيقى
 	for i in range(6):
 		var p := AudioStreamPlayer.new()
-		p.volume_db = -6.0
+		p.volume_db = -1.5
 		add_child(p)
 		_sfx_players.append(p)
 
 	_bgm_player = AudioStreamPlayer.new()
-	_bgm_player.volume_db = -12.0
+	# موسيقى خلفية متوازنة وهادئة لا تطغى على صوت إطلاق النار
+	_bgm_player.volume_db = -19.5
 	add_child(_bgm_player)
 
 
@@ -67,16 +68,16 @@ func play_sfx(sfx_name: String) -> void:
 
 
 func _build_sfx_bank() -> void:
-	# إطلاق نار البطل: موجة مربعة تهبط بسرعة
-	_sfx_streams["shoot"] = _synth_sweep(0.075, 760.0, 240.0, "square", 0.35)
+	# إطلاق نار البطل: صوت طلقة حاد وقوي وواضح فوق الموسيقى
+	_sfx_streams["shoot"] = _synth_sweep(0.095, 920.0, 190.0, "noise_mix", 0.65)
 	# إطلاق نار الأعداء: نغمة أعمق
-	_sfx_streams["enemy_shoot"] = _synth_sweep(0.09, 340.0, 150.0, "square", 0.30)
+	_sfx_streams["enemy_shoot"] = _synth_sweep(0.09, 340.0, 150.0, "square", 0.40)
 	# قفز: موجة مربعة تصعد بسرعة
-	_sfx_streams["jump"] = _synth_sweep(0.11, 220.0, 580.0, "square", 0.32)
+	_sfx_streams["jump"] = _synth_sweep(0.11, 240.0, 620.0, "square", 0.42)
 	# إصابة: ضوضاء قصيرة + نغمة حادة
-	_sfx_streams["hit"] = _synth_sweep(0.09, 440.0, 110.0, "noise_mix", 0.42)
+	_sfx_streams["hit"] = _synth_sweep(0.10, 460.0, 110.0, "noise_mix", 0.55)
 	# انفجار عدو أو زعيم: ضوضاء 8-bit متلاشية
-	_sfx_streams["explode"] = _synth_sweep(0.28, 160.0, 45.0, "noise", 0.50)
+	_sfx_streams["explode"] = _synth_sweep(0.30, 170.0, 42.0, "noise", 0.65)
 
 
 ## توليد مؤثر صوتي أصلي كـ AudioStreamWAV في الذاكرة

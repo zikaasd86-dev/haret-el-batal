@@ -24,7 +24,7 @@ position = Vector2(40, 156)
 position = Vector2(4424, 160)
 boss_name = "ZAEEM HARET EL MAGANEEN"
 boss_variant = 1
-max_hp = 70
+max_hp = 55
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(180, 90)
